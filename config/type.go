@@ -20,10 +20,10 @@ type RedisConfig struct {
 }
 
 type ServerConfig struct {
-	Host             string `json:"host"`
-	Port             uint   `json:"port"`
-	AuthExpMinute    uint   `json:"authExpMin"`
-	AuthRefreshMinut uint   `json:"authRefreshMin"`
-	RefreshSecret    string `json:"refreshSecret"`
-	Salt             string `json:"salt"`
+	Host              string `json:"host"`
+	Port              uint   `json:"port"`
+	AuthExpMinute     uint   `json:"authExpMin"`
+	AuthRefreshMinute uint   `json:"authRefreshMin"`
+	AuthSecret        string `json:"authSecret"`
+	RefreshSecret     string `json:"refreshSecret"`
 }
