@@ -8,7 +8,7 @@ message UserSignUpRequest {
     string phone = 3 [json_name="phone"];
 }
 
-message UserSignUpResponse {
+message UserTokenResponse {
     string accessToken = 1 [json_name="accessToken"]; 
     string refreshToken = 2 [json_name="refreshToken"]; 
 }

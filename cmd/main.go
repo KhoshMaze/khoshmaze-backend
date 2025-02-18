@@ -5,8 +5,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/KhoshMaze/khoshmaze-backend/api/handlers/http"
+	"github.com/KhoshMaze/khoshmaze-backend/api/http"
 	"github.com/KhoshMaze/khoshmaze-backend/config"
+	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/cron"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/app"
 )
 
@@ -22,6 +23,8 @@ func main() {
 	c := config.MustReadConfig(*cfg)
 
 	appContainer := app.MustNewApp(c)
+
+	cron.SetTokenDeleterJob(appContainer.DB())
 
 	log.Fatal(http.Run(appContainer, c.Server))
 }
