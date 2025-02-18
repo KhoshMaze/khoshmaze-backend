@@ -32,6 +32,23 @@ func SignUp(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 	}
 }
 
+func Logout(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		svc := svcGetter(c.UserContext())
+
+		err := svc.Logout(c.UserContext(), c.Cookies("refreshToken"))
+		if err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+		logger := context.GetLogger(c.UserContext())
+		logger.Info("user logged out")
+
+		return c.Status(fiber.StatusAccepted).JSON(fiber.Map{
+			"message": "ok",
+		})
+	}
+}
+
 func RefreshToken(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 

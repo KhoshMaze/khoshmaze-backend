@@ -14,7 +14,6 @@ import (
 
 func Run(appContainer app.App, cfg config.ServerConfig) error {
 
-	
 	router := fiber.New()
 
 	router.Use(swagger.New(
@@ -39,6 +38,7 @@ func registerAuthAPI(appContainer app.App, cfg config.ServerConfig, router fiber
 	userSvcGetter := handlers.UserServiceGetter(appContainer, cfg)
 	router.Post("/register", middlewares.SetTransaction(appContainer.DB()), handlers.SignUp(userSvcGetter))
 	router.Post("/refresh", handlers.RefreshToken(userSvcGetter))
+	router.Post("/logout", middlewares.AuthMiddleware([]byte(cfg.AuthSecret)), handlers.Logout(userSvcGetter))
 	router.Get("/test", middlewares.AuthMiddleware([]byte(cfg.AuthSecret)), handlers.Test())
 	// router.Post("/login")
 }

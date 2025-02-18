@@ -10,10 +10,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetTokenDeleterJob(db *gorm.DB) {
+func SetTokenDeleterJob(db *gorm.DB, interval int) {
 	job := gocron.NewScheduler(timeutils.TehranLoc)
-	log.Println(timeutils.TehranLoc.String())
-	job.Every(12).Hours().Do(func() {
+	job.Every(interval).Hours().Do(func() {
 		log.Println("started cron job")
 		err := db.Where("expires_at < ?", time.Now()).Delete(&types.TokenBlacklist{}).Error
 		if err != nil {

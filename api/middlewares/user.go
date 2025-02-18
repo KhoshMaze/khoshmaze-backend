@@ -20,7 +20,7 @@ func AuthMiddleware(secret []byte) fiber.Handler {
 				return fiber.ErrUnauthorized
 			}
 			logger := context.GetLogger(ctx.UserContext())
-			context.SetLogger(ctx.UserContext(), logger.With("user_id", userClaims.UserID))
+			context.SetLogger(ctx.UserContext(), logger.With("user_id", userClaims.UserID, "ip", ctx.IP()))
 
 			return ctx.Next()
 		},

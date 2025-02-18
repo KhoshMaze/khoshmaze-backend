@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/KhoshMaze/khoshmaze-backend/api/pb"
 	"github.com/KhoshMaze/khoshmaze-backend/api/utils"
@@ -60,6 +61,26 @@ func (s *UserService) SignUp(ctx context.Context, req *pb.UserSignUpRequest) (*p
 
 }
 
+func (s *UserService) Logout(ctx context.Context, token string) error {
+	userClaims, err := utils.UserClaimsFromCookies(token, []byte(s.refreshSecret))
+
+	if err != nil {
+		return err
+	}
+
+	if ok := s.svc.IsBannedToken(ctx, token); ok {
+		return errors.New("invalid refresh token")
+	}
+
+	err = s.svc.CreateBannedToken(ctx, model.TokenBlacklist{
+		Value:     token,
+		ExpiresAt: userClaims.ExpiresAt.Time,
+		UserID:    model.UserID(userClaims.UserID),
+	})
+
+	return err
+}
+
 func (s *UserService) RefreshToken(ctx context.Context, token string) (*pb.UserTokenResponse, error) {
 	userClaims, err := utils.UserClaimsFromCookies(token, []byte(s.refreshSecret))
 
@@ -77,12 +98,6 @@ func (s *UserService) RefreshToken(ctx context.Context, token string) (*pb.UserT
 		return nil, err
 	}
 
-	refresh, err := s.createToken(userClaims.UserID, userClaims.Phone, true)
-
-	if err != nil {
-		return nil, err
-	}
-
 	err = s.svc.CreateBannedToken(ctx, model.TokenBlacklist{
 		Value:     token,
 		ExpiresAt: userClaims.ExpiresAt.Time,
@@ -91,6 +106,14 @@ func (s *UserService) RefreshToken(ctx context.Context, token string) (*pb.UserT
 
 	if err != nil {
 		return nil, err
+	}
+
+	var refresh string
+	if time.Until(userClaims.ExpiresAt.Time) < 12 {
+		refresh, err = s.createToken(userClaims.UserID, userClaims.Phone, true)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &pb.UserTokenResponse{

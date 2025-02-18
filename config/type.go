@@ -4,6 +4,7 @@ type Config struct {
 	DB     DBConfig     `json:"database"`
 	Redis  RedisConfig  `json:"redis"`
 	Server ServerConfig `json:"server"`
+	Jobs   JobsConfig   `json:"jobs"`
 }
 
 type DBConfig struct {
@@ -26,4 +27,8 @@ type ServerConfig struct {
 	AuthRefreshMinute uint   `json:"authRefreshMin"`
 	AuthSecret        string `json:"authSecret"`
 	RefreshSecret     string `json:"refreshSecret"`
+}
+
+type JobsConfig struct {
+	TokenCheckerInterval int `json:"tokenCheckerInterval"`
 }

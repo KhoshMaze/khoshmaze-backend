@@ -24,7 +24,7 @@ func main() {
 
 	appContainer := app.MustNewApp(c)
 
-	cron.SetTokenDeleterJob(appContainer.DB())
+	cron.SetTokenDeleterJob(appContainer.DB(), c.Jobs.TokenCheckerInterval)
 
 	log.Fatal(http.Run(appContainer, c.Server))
 }
