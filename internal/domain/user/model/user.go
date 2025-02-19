@@ -51,8 +51,6 @@ type User struct {
 }
 
 type TokenBlacklist struct {
-	ID        uint
-	CreatedAt time.Time
 	ExpiresAt time.Time
 	Value     string
 	UserID    UserID

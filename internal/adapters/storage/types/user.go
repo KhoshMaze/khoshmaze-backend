@@ -15,8 +15,6 @@ type User struct {
 }
 
 type TokenBlacklist struct {
-	ID        uint      `gorm:"primarykey"`
-	CreatedAt time.Time `gorm:"autoCreateTime"`
 	ExpiresAt time.Time
 	Value     string `gorm:"type:text;not null;unique"`
 	UserID    uint
