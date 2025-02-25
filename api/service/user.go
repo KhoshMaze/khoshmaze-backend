@@ -123,15 +123,19 @@ func (s *UserService) RefreshToken(ctx context.Context, token string) (*pb.UserT
 }
 
 func (s *UserService) createToken(userID uint, phone string, isRefresh bool) (string, error) {
-	var secret string = s.authSecret
+	var (
+		secret string = s.authSecret
+		exp uint = s.expMin
+	)
 
 	if isRefresh {
 		secret = s.refreshSecret
+		exp = s.refreshExpMin
 	}
 
 	token, err := jwt.CreateToken([]byte(secret), &jwt.UserClaims{
 		RegisteredClaims: jwt5.RegisteredClaims{
-			ExpiresAt: jwt5.NewNumericDate(timeutils.AddMinutes(s.expMin, true)),
+			ExpiresAt: jwt5.NewNumericDate(timeutils.AddMinutes(exp, true)),
 		},
 		UserID: uint(userID),
 		Phone:  phone,

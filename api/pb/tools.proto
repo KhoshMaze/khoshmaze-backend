@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option go_package = "github.com/KhoshMaze/khoshmaze-backend/api/pb";
+
+message QrCodeRequest {
+    string url = 1 [json_name= "url"];
+
+    message Color {
+        uint64 R = 1 [json_name="R"];
+        uint64 G = 2 [json_name="G"];
+        uint64 B = 3 [json_name="B"];
+    }
+
+    Color backgroundColor = 2 [json_name="backgroundColor"];
+    Color foregroundColor = 3 [json_name="foregroundColor"];
+    bool hasBorder = 4 [json_name="hasBorder"];
+    int32 size = 5 [json_name="size"];
+}
