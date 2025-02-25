@@ -9,7 +9,7 @@ import (
 func UserDomainToStorage(userDomain model.User) *types.User {
 	return &types.User{
 		Model: gorm.Model{
-			ID:        uint(userDomain.UserID),
+			ID:        uint(userDomain.ID),
 			CreatedAt: userDomain.CreatedAt,
 			UpdatedAt: userDomain.UpdatedAt,
 		},
@@ -23,7 +23,7 @@ func UserDomainToStorage(userDomain model.User) *types.User {
 
 func UserStorageToDomain(user types.User) *model.User {
 	return &model.User{
-		UserID:           model.UserID(user.ID),
+		ID:               model.UserID(user.ID),
 		CreatedAt:        user.CreatedAt,
 		UpdatedAt:        user.UpdatedAt,
 		FirstName:        user.FirstName,
