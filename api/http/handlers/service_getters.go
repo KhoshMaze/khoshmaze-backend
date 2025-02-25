@@ -10,9 +10,9 @@ import (
 
 type ServiceGetter[T any] func(context.Context) T
 
-func UserServiceGetter(appContainer app.App, cfg config.ServerConfig) ServiceGetter[*service.UserService] {
+func UserServiceGetter(appContainer app.App, cfgServer config.ServerConfig) ServiceGetter[*service.UserService] {
 	return func(ctx context.Context) *service.UserService {
 		return service.NewUserService(appContainer.UserService(ctx),
-			cfg.AuthSecret, cfg.RefreshSecret, cfg.AuthExpMinute, cfg.AuthRefreshMinute)
+			cfgServer.AuthSecret, cfgServer.RefreshSecret, cfgServer.AuthExpMinute, cfgServer.AuthRefreshMinute,appContainer.NotificationService(ctx))
 	}
 }

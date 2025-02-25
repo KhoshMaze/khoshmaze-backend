@@ -32,6 +32,27 @@ func SignUp(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 	}
 }
 
+func SendOTP(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		svc := svcGetter(c.UserContext())
+		var req pb.OtpRequest
+
+		if err := c.BodyParser(&req); err != nil {
+			return fiber.ErrBadRequest
+		}
+		if err := svc.SendOTP(c.UserContext(), &req); err != nil {
+			return err
+		}
+
+		return c.Status(fiber.StatusOK).JSON(
+			fiber.Map{
+				"message": "sent otp",
+				"status": "ok", 
+			},
+		)
+	}
+}
+
 func Logout(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		svc := svcGetter(c.UserContext())

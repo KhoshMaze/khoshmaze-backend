@@ -5,6 +5,8 @@ type Config struct {
 	Redis  RedisConfig  `json:"redis"`
 	Server ServerConfig `json:"server"`
 	Jobs   JobsConfig   `json:"jobs"`
+	SMS    SMSConfig    `json:"SMS"`
+	Extra  ExtraConfig  `json:"extra"`
 }
 
 type DBConfig struct {
@@ -31,5 +33,22 @@ type ServerConfig struct {
 }
 
 type JobsConfig struct {
-	TokenCheckerInterval int `json:"tokenCheckerInterval"`
+	TokenCheckerIntervalMinute int `json:"tokenCheckerInterval"`
+	OutboxPollerIntervalSecond int `json:"outboxPollerInterval"`
+}
+
+type SMSConfig struct {
+	ApiKey       string                `json:"apiKey"`
+	ApiBaseURL   string                `json:"apiBaseURL"`
+	Verification SMSVerificationConfig `json:"verification"`
+}
+
+type SMSVerificationConfig struct {
+	URL        string `json:"url"`
+	TemplateID int    `json:"templateID"`
+	OtpExpMin  int    `json:"otpExpMin"`
+}
+
+type ExtraConfig struct {
+	FrontendDomain string `json:"frontendDomain"`
 }

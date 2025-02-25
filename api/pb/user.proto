@@ -6,6 +6,17 @@ message UserSignUpRequest {
     string firstName = 1 [json_name = "firstName"]; 
     string lastName = 2 [json_name = "lastName"];
     string phone = 3 [json_name="phone"];
+    string otp = 4 [json_name="otp"];
+}
+
+message OtpRequest {
+    string phone = 1 [json_name="phone"];
+    int64 type = 2 [json_name="type"];
+}
+
+message UserLoginRequest {
+    string phone = 1 [json_name="phone"];
+    string otp = 2 [json_name="otp"];
 }
 
 message UserTokenResponse {

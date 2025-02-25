@@ -3,28 +3,41 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
+	"math/rand/v2"
 	"time"
 
 	"github.com/KhoshMaze/khoshmaze-backend/api/pb"
 	"github.com/KhoshMaze/khoshmaze-backend/api/utils"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/jwt"
 	timeutils "github.com/KhoshMaze/khoshmaze-backend/internal/adapters/time"
+	notifDomain "github.com/KhoshMaze/khoshmaze-backend/internal/domain/notification/model"
+	notifPort "github.com/KhoshMaze/khoshmaze-backend/internal/domain/notification/port"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/user/model"
 	userPort "github.com/KhoshMaze/khoshmaze-backend/internal/domain/user/port"
 	jwt5 "github.com/golang-jwt/jwt/v5"
 )
 
+var (
+	ErrWrongOTP            = errors.New("wrong otp")
+	ErrWrongOTPType        = errors.New("wrong otp type. [0 for register & 1 for login]")
+	ErrInvalidRefreshToken = errors.New("invalid refresh token")
+	ErrUserAlreadyExists   = errors.New("user already exists")
+)
+
 type UserService struct {
 	svc           userPort.Service
+	notifSvc      notifPort.Service
 	authSecret    string
 	refreshSecret string
 	expMin        uint
 	refreshExpMin uint
 }
 
-func NewUserService(svc userPort.Service, authSecret, refreshSecret string, expMin, refreshExpMin uint) *UserService {
+func NewUserService(svc userPort.Service, authSecret, refreshSecret string, expMin, refreshExpMin uint, notifSvc notifPort.Service) *UserService {
 	return &UserService{
 		svc:           svc,
+		notifSvc:      notifSvc,
 		authSecret:    authSecret,
 		refreshSecret: refreshSecret,
 		expMin:        expMin,
@@ -33,6 +46,20 @@ func NewUserService(svc userPort.Service, authSecret, refreshSecret string, expM
 }
 
 func (s *UserService) SignUp(ctx context.Context, req *pb.UserSignUpRequest) (*pb.UserTokenResponse, error) {
+	ok, err := s.notifSvc.CheckUserNotifValue(ctx, model.Phone(req.GetPhone()), req.GetOtp())
+	if err != nil {
+		return nil, err
+	}
+
+	if !ok {
+		return nil, ErrWrongOTP
+	}
+
+	if user, _ := s.svc.GetUserByFilter(ctx, &model.UserFilter{
+		Phone: req.GetPhone(),
+	}); user != nil {
+		return nil, ErrUserAlreadyExists
+	}
 	userId, err := s.svc.CreateUser(ctx, model.User{
 		FirstName: req.GetFirstName(),
 		LastName:  req.GetLastName(),
@@ -61,6 +88,32 @@ func (s *UserService) SignUp(ctx context.Context, req *pb.UserSignUpRequest) (*p
 
 }
 
+func (s *UserService) SendOTP(ctx context.Context, req *pb.OtpRequest) error {
+	var (
+		phone   = req.GetPhone()
+		otpType = req.GetType()
+	)
+	user, err := s.svc.GetUserByFilter(ctx, &model.UserFilter{
+		Phone: phone,
+	})
+
+	switch otpType {
+	case 1: // for register
+		if user != nil {
+			return ErrUserAlreadyExists
+		}
+	case 2: // for login
+		if err != nil {
+			return err
+		}
+	case 0:
+		return ErrWrongOTPType
+	}
+
+	code := rand.IntN(999999) + 100000
+	return s.notifSvc.Send(ctx, notifDomain.NewNotification(0, fmt.Sprint(code), notifDomain.NotifTypeSMS, true, time.Second*150, model.Phone(phone)))
+}
+
 func (s *UserService) Logout(ctx context.Context, token string) error {
 	userClaims, err := utils.UserClaimsFromCookies(token, []byte(s.refreshSecret))
 
@@ -69,7 +122,7 @@ func (s *UserService) Logout(ctx context.Context, token string) error {
 	}
 
 	if ok := s.svc.IsBannedToken(ctx, token); ok {
-		return errors.New("invalid refresh token")
+		return ErrInvalidRefreshToken
 	}
 
 	err = s.svc.CreateBannedToken(ctx, model.TokenBlacklist{
@@ -89,7 +142,7 @@ func (s *UserService) RefreshToken(ctx context.Context, token string) (*pb.UserT
 	}
 
 	if ok := s.svc.IsBannedToken(ctx, token); ok {
-		return nil, errors.New("invalid refresh token")
+		return nil, ErrInvalidRefreshToken
 	}
 
 	access, err := s.createToken(userClaims.UserID, userClaims.Phone, false)
@@ -125,7 +178,7 @@ func (s *UserService) RefreshToken(ctx context.Context, token string) (*pb.UserT
 func (s *UserService) createToken(userID uint, phone string, isRefresh bool) (string, error) {
 	var (
 		secret string = s.authSecret
-		exp uint = s.expMin
+		exp    uint   = s.expMin
 	)
 
 	if isRefresh {

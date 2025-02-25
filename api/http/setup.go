@@ -7,6 +7,7 @@ import (
 	"github.com/KhoshMaze/khoshmaze-backend/api/middlewares"
 	"github.com/KhoshMaze/khoshmaze-backend/config"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/app"
+	json "github.com/goccy/go-json"
 	"github.com/gofiber/contrib/swagger"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
@@ -14,7 +15,10 @@ import (
 
 func Run(appContainer app.App, cfg config.ServerConfig) error {
 
-	router := fiber.New()
+	router := fiber.New(fiber.Config{
+		JSONEncoder: json.Marshal,
+		JSONDecoder: json.Unmarshal,
+	})
 
 	router.Use(swagger.New(
 		swagger.Config{
@@ -38,7 +42,7 @@ func registerAuthAPI(appContainer app.App, cfg config.ServerConfig, router fiber
 	userSvcGetter := handlers.UserServiceGetter(appContainer, cfg)
 	router.Post("/register", middlewares.SetTransaction(appContainer.DB()), handlers.SignUp(userSvcGetter))
 	router.Post("/refresh", handlers.RefreshToken(userSvcGetter))
-
+	router.Post("/send-otp", handlers.SendOTP(userSvcGetter))
 	router.Use(middlewares.AuthMiddleware([]byte(cfg.AuthSecret)))
 	router.Post("/logout", handlers.Logout(userSvcGetter))
 	router.Post("/qrcode", handlers.GenerateQrCode())
