@@ -11,6 +11,6 @@ ENV TZ=Asia/Tehran
 
 WORKDIR /github.com/KhoshMaze/khoshmaze-backend 
 
-COPY --from=builder /github.com/babyhando/order-service/khoshmaze-api ./khoshmaze-api
+COPY --from=builder /github.com/KhoshMaze/khoshmaze-backend/khoshmaze-api ./khoshmaze-api
 
 CMD ["./khoshmaze-api" , "--config" , "/etc/config.json"]

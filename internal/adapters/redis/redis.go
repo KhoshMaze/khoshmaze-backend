@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	c "github.com/babyhando/order-service/pkg/cache"
+	c "github.com/KhoshMaze/khoshmaze-backend/internal/adapters/cache"
 
 	"github.com/redis/go-redis/v9"
 )
