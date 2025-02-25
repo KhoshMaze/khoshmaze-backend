@@ -87,7 +87,7 @@ func (a *app) userServiceWithDB(db *gorm.DB) userPort.Service {
 
 func (a *app) notifServiceWithDB(db *gorm.DB) notifPort.Service {
 	return notification.NewService(storage.NewNotificationRepo(db, a.redisProvider),
-		user.NewService(storage.NewUserRepo(db, a.redisProvider)), storage.NewOutboxRepo(db))
+		user.NewService(storage.NewUserRepo(db, a.redisProvider)), storage.NewOutboxRepo(db), a.cfg.SMS)
 }
 
 func (a *app) NotificationService(ctx context.Context) notifPort.Service {
