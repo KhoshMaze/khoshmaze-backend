@@ -71,21 +71,7 @@ func (s *UserService) SignUp(ctx context.Context, req *pb.UserSignUpRequest) (*p
 		return nil, ErrUserOnCreate
 	}
 
-	access, err := s.createToken(uint(userId), req.GetPhone(), false)
-	if err != nil {
-		return nil, err
-	}
-
-	refresh, err := s.createToken(uint(userId), req.GetPhone(), true)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &pb.UserTokenResponse{
-		AccessToken:  access,
-		RefreshToken: refresh,
-	}, nil
+	return s.generateTokenResponse(&jwt.UserClaims{UserID: uint(userId), Phone: req.GetPhone()}, true)
 
 }
 
@@ -103,21 +89,7 @@ func (s *UserService) Login(ctx context.Context, req *pb.UserLoginRequest) (*pb.
 		Phone: req.GetPhone(),
 	})
 
-	access, err := s.createToken(uint(user.ID), req.GetPhone(), false)
-	if err != nil {
-		return nil, err
-	}
-
-	refresh, err := s.createToken(uint(user.ID), req.GetPhone(), true)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &pb.UserTokenResponse{
-		AccessToken:  access,
-		RefreshToken: refresh,
-	}, nil
+	return s.generateTokenResponse(&jwt.UserClaims{UserID: uint(user.ID), Phone: string(user.Phone)}, true)
 
 }
 
@@ -178,37 +150,24 @@ func (s *UserService) RefreshToken(ctx context.Context, token string) (*pb.UserT
 		return nil, ErrInvalidRefreshToken
 	}
 
-	access, err := s.createToken(userClaims.UserID, userClaims.Phone, false)
+	if time.Until(userClaims.ExpiresAt.Time) / time.Hour < 12 {
 
-	if err != nil {
-		return nil, err
-	}
+		err = s.svc.CreateBannedToken(ctx, model.TokenBlacklist{
+			Value:     token,
+			ExpiresAt: userClaims.ExpiresAt.Time,
+			UserID:    model.UserID(userClaims.UserID),
+		})
 
-	err = s.svc.CreateBannedToken(ctx, model.TokenBlacklist{
-		Value:     token,
-		ExpiresAt: userClaims.ExpiresAt.Time,
-		UserID:    model.UserID(userClaims.UserID),
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	var refresh string
-	if time.Until(userClaims.ExpiresAt.Time) < 12 {
-		refresh, err = s.createToken(userClaims.UserID, userClaims.Phone, true)
 		if err != nil {
 			return nil, err
 		}
+		return s.generateTokenResponse(userClaims, true)
 	}
 
-	return &pb.UserTokenResponse{
-		AccessToken:  access,
-		RefreshToken: refresh,
-	}, nil
+	return s.generateTokenResponse(userClaims, false)
 }
 
-func (s *UserService) createToken(userID uint, phone string, isRefresh bool) (string, error) {
+func (s *UserService) createToken(claims *jwt.UserClaims, isRefresh bool) (string, int64, error) {
 	var (
 		secret string = s.authSecret
 		exp    uint   = s.expMin
@@ -218,18 +177,40 @@ func (s *UserService) createToken(userID uint, phone string, isRefresh bool) (st
 		secret = s.refreshSecret
 		exp = s.refreshExpMin
 	}
-
-	token, err := jwt.CreateToken([]byte(secret), &jwt.UserClaims{
-		RegisteredClaims: jwt5.RegisteredClaims{
-			ExpiresAt: jwt5.NewNumericDate(timeutils.AddMinutes(exp, true)),
-		},
-		UserID: uint(userID),
-		Phone:  phone,
-	})
+	claims.ExpiresAt = jwt5.NewNumericDate(timeutils.AddMinutes(exp, true))
+	token, err := jwt.CreateToken([]byte(secret), claims)
 
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 
-	return token, nil
+	return token, int64(exp * 60), nil
+}
+
+func (s *UserService) generateTokenResponse(claims *jwt.UserClaims, genRefresh bool) (*pb.UserTokenResponse, error) {
+
+	access, accessMaxAge, err := s.createToken(claims, false)
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		refresh       string
+		refreshMaxAge int64
+	)
+	if genRefresh {
+
+		refresh, refreshMaxAge, err = s.createToken(claims, true)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &pb.UserTokenResponse{
+		AccessToken:   access,
+		RefreshToken:  refresh,
+		AccessMaxAge:  accessMaxAge,
+		RefreshMaxAge: refreshMaxAge,
+	}, nil
 }

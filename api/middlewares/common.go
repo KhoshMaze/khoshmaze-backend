@@ -20,14 +20,25 @@ func RequestsLogger() fiber.Handler {
 
 func RateLimiter(key string, exp, max int) fiber.Handler {
 	return limiter.New(limiter.Config{
+		Next: func(c *fiber.Ctx) bool {
+			return c.IP() == "127.0.0.1"
+		},
 		KeyGenerator: func(c *fiber.Ctx) string {
-			if key == "" {
+			switch key {
+			case "refreshToken":
+				key = c.Cookies("refreshToken")
+			case "phone":
+				key = c.FormValue("phone", c.IP())
+			default:
 				key = c.IP()
+
+				return key
 			}
 			return key
 		},
-		Expiration: time.Duration(exp) * time.Second,
-		Max:        max,
+		Expiration:         time.Duration(exp) * time.Second,
+		Max:                max,
+		SkipFailedRequests: true,
 	},
 	)
 }

@@ -22,4 +22,6 @@ message UserLoginRequest {
 message UserTokenResponse {
     string accessToken = 1 [json_name="accessToken"]; 
     string refreshToken = 2 [json_name="refreshToken"]; 
+    int64 refreshMaxAge = 3 [json_name = "refreshMaxAge"];
+    int64 accessMaxAge = 4 [json_name ="accessMaxAge"]; 
 }

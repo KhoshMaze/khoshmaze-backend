@@ -25,8 +25,19 @@ func SignUp(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
 
+		c.Cookie(&fiber.Cookie{
+			Name:     "refreshToken",
+			Value:    resp.RefreshToken,
+			HTTPOnly: true,
+			Secure:   true,
+			SameSite: "strict",
+			MaxAge:   int(resp.RefreshMaxAge),
+		})
+
 		logger := context.GetLogger(c.UserContext())
 		logger.Info("new user created")
+		resp.RefreshToken = ""
+		resp.RefreshMaxAge = 0
 		return c.Status(fiber.StatusCreated).JSON(resp)
 
 	}
@@ -87,6 +98,16 @@ func Login(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 		logger := context.GetLogger(ctx.UserContext())
 		logger.Info("user logged in")
 
+		ctx.Cookie(&fiber.Cookie{
+			Name:     "refreshToken",
+			Value:    resp.RefreshToken,
+			HTTPOnly: true,
+			Secure:   true,
+			SameSite: "strict",
+			MaxAge:   int(resp.RefreshMaxAge),
+		})
+		resp.RefreshToken = ""
+		resp.RefreshMaxAge = 0
 		return ctx.Status(fiber.StatusAccepted).JSON(resp)
 	}
 }
@@ -101,6 +122,19 @@ func RefreshToken(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 
+		if resp.GetRefreshToken() != "" {
+
+			c.Cookie(&fiber.Cookie{
+				Name:     "refreshToken",
+				Value:    resp.RefreshToken,
+				HTTPOnly: true,
+				Secure:   true,
+				SameSite: "strict",
+				MaxAge:   int(resp.RefreshMaxAge),
+			})
+		}
+		resp.RefreshToken = ""
+		resp.RefreshMaxAge = 0
 		return c.Status(fiber.StatusOK).JSON(resp)
 
 	}

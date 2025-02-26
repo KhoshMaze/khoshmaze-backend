@@ -30,6 +30,8 @@ type ServerConfig struct {
 	AuthRefreshMinute uint   `json:"authRefreshMin"`
 	AuthSecret        string `json:"authSecret"`
 	RefreshSecret     string `json:"refreshSecret"`
+	SSLCertPath       string `json:"cert"`
+	SSLKeyPath        string `json:"key"`
 }
 
 type JobsConfig struct {
