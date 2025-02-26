@@ -17,7 +17,7 @@ func SignUp(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 			return fiber.ErrBadRequest
 		}
 
-		resp, err := svc.SignUp(c.UserContext(), &req)
+		resp, err := svc.SignUp(c.UserContext(), &req, c.IP())
 		if err != nil {
 			if errors.Is(err, service.ErrUserAlreadyExists) || errors.Is(err, service.ErrWrongOTP) {
 				return fiber.NewError(fiber.StatusBadRequest, err.Error())
@@ -90,7 +90,7 @@ func Login(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 			return fiber.ErrBadRequest
 		}
 
-		resp, err := svc.Login(ctx.UserContext(), &req)
+		resp, err := svc.Login(ctx.UserContext(), &req, ctx.IP())
 		if err != nil {
 			return fiber.ErrInternalServerError
 		}
@@ -116,7 +116,7 @@ func RefreshToken(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 
 		svc := svcGetter(c.UserContext())
 
-		resp, err := svc.RefreshToken(c.UserContext(), c.Cookies("refreshToken"))
+		resp, err := svc.RefreshToken(c.UserContext(), c.Cookies("refreshToken"), c.IP())
 
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())

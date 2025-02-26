@@ -10,13 +10,17 @@ import (
 	"gorm.io/gorm"
 )
 
-func AuthMiddleware(secret []byte) fiber.Handler {
+func AuthMiddleware(secret []byte, secret2 []byte) fiber.Handler {
 	return jwtware.New(jwtware.Config{
 		SigningKey: jwtware.SigningKey{Key: secret},
 		Claims:     &jwt.UserClaims{},
 		SuccessHandler: func(ctx *fiber.Ctx) error {
 			userClaims := utils.UserClaimsFromLocals(ctx)
 			if userClaims == nil {
+				return fiber.ErrUnauthorized
+			}
+
+			if userClaims.IP != ctx.IP() {
 				return fiber.ErrUnauthorized
 			}
 			logger := context.GetLogger(ctx.UserContext())
@@ -32,7 +36,7 @@ func AuthMiddleware(secret []byte) fiber.Handler {
 }
 
 func SetUserContext(c *fiber.Ctx) error {
-	c.SetUserContext(context.NewAppContext(c.UserContext(), context.WithLogger(logger.NewLogger())))
+	c.SetUserContext(context.NewAppContext(c.UserContext(), context.WithLogger(logger.NewLogger().With("ip", c.IP()))))
 	return c.Next()
 }
 

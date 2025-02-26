@@ -46,7 +46,7 @@ func NewUserService(svc userPort.Service, authSecret, refreshSecret string, expM
 	}
 }
 
-func (s *UserService) SignUp(ctx context.Context, req *pb.UserSignUpRequest) (*pb.UserTokenResponse, error) {
+func (s *UserService) SignUp(ctx context.Context, req *pb.UserSignUpRequest, userIP string) (*pb.UserTokenResponse, error) {
 	ok, err := s.notifSvc.CheckUserNotifValue(ctx, model.Phone(req.GetPhone()), req.GetOtp())
 	if err != nil {
 		return nil, err
@@ -71,11 +71,11 @@ func (s *UserService) SignUp(ctx context.Context, req *pb.UserSignUpRequest) (*p
 		return nil, ErrUserOnCreate
 	}
 
-	return s.generateTokenResponse(&jwt.UserClaims{UserID: uint(userId), Phone: req.GetPhone()}, true)
+	return s.generateTokenResponse(&jwt.UserClaims{UserID: uint(userId), Phone: req.GetPhone(), IP: userIP}, true)
 
 }
 
-func (s *UserService) Login(ctx context.Context, req *pb.UserLoginRequest) (*pb.UserTokenResponse, error) {
+func (s *UserService) Login(ctx context.Context, req *pb.UserLoginRequest, userIP string) (*pb.UserTokenResponse, error) {
 	ok, err := s.notifSvc.CheckUserNotifValue(ctx, model.Phone(req.GetPhone()), req.GetOtp())
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (s *UserService) Login(ctx context.Context, req *pb.UserLoginRequest) (*pb.
 		Phone: req.GetPhone(),
 	})
 
-	return s.generateTokenResponse(&jwt.UserClaims{UserID: uint(user.ID), Phone: string(user.Phone)}, true)
+	return s.generateTokenResponse(&jwt.UserClaims{UserID: uint(user.ID), Phone: string(user.Phone), IP: userIP}, true)
 
 }
 
@@ -139,18 +139,22 @@ func (s *UserService) Logout(ctx context.Context, token string) error {
 	return err
 }
 
-func (s *UserService) RefreshToken(ctx context.Context, token string) (*pb.UserTokenResponse, error) {
+func (s *UserService) RefreshToken(ctx context.Context, token string, userIP string) (*pb.UserTokenResponse, error) {
 	userClaims, err := utils.UserClaimsFromCookies(token, []byte(s.refreshSecret))
 
 	if err != nil {
 		return nil, err
 	}
 
+	if userClaims.IP != userIP {
+		return nil, ErrInvalidRefreshToken
+	}
+
 	if ok := s.svc.IsBannedToken(ctx, token); ok {
 		return nil, ErrInvalidRefreshToken
 	}
 
-	if time.Until(userClaims.ExpiresAt.Time) / time.Hour < 12 {
+	if time.Until(userClaims.ExpiresAt.Time)/time.Hour < 12 {
 
 		err = s.svc.CreateBannedToken(ctx, model.TokenBlacklist{
 			Value:     token,

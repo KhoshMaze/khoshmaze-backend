@@ -41,11 +41,11 @@ func Run(appContainer app.App, cfg config.ServerConfig) error {
 func registerAuthAPI(appContainer app.App, cfg config.ServerConfig, router fiber.Router) {
 	userSvcGetter := handlers.UserServiceGetter(appContainer, cfg)
 	router.Post("/register", middlewares.SetTransaction(appContainer.DB()), handlers.SignUp(userSvcGetter))
-	router.Post("/refresh", middlewares.RateLimiter("refreshToken", int((cfg.AuthExpMinute - 1) * 60), 1),handlers.RefreshToken(userSvcGetter))
-	router.Post("/send-otp", middlewares.RateLimiter("", 140, 1),handlers.SendOTP(userSvcGetter))
-	router.Post("/login",handlers.Login(userSvcGetter))
+	router.Post("/refresh", middlewares.RateLimiter("refreshToken", int((cfg.AuthExpMinute-1)*60), 1), handlers.RefreshToken(userSvcGetter))
+	router.Post("/send-otp", middlewares.RateLimiter("", 140, 1), handlers.SendOTP(userSvcGetter))
+	router.Post("/login", handlers.Login(userSvcGetter))
 
-	router.Use(middlewares.AuthMiddleware([]byte(cfg.AuthSecret)))
+	router.Use(middlewares.AuthMiddleware([]byte(cfg.AuthSecret), []byte(cfg.RefreshSecret)))
 	router.Post("/logout", handlers.Logout(userSvcGetter))
 	router.Post("/qrcode", handlers.GenerateQrCode())
 	router.Get("/test", handlers.Test())
