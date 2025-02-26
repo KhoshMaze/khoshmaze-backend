@@ -23,6 +23,7 @@ var (
 	ErrWrongOTPType        = errors.New("wrong otp type. [0 for register & 1 for login]")
 	ErrInvalidRefreshToken = errors.New("invalid refresh token")
 	ErrUserAlreadyExists   = errors.New("user already exists")
+	ErrUserOnCreate        = errors.New("couldn't create the user")
 )
 
 type UserService struct {
@@ -67,7 +68,7 @@ func (s *UserService) SignUp(ctx context.Context, req *pb.UserSignUpRequest) (*p
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, ErrUserOnCreate
 	}
 
 	access, err := s.createToken(uint(userId), req.GetPhone(), false)
@@ -76,6 +77,38 @@ func (s *UserService) SignUp(ctx context.Context, req *pb.UserSignUpRequest) (*p
 	}
 
 	refresh, err := s.createToken(uint(userId), req.GetPhone(), true)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.UserTokenResponse{
+		AccessToken:  access,
+		RefreshToken: refresh,
+	}, nil
+
+}
+
+func (s *UserService) Login(ctx context.Context, req *pb.UserLoginRequest) (*pb.UserTokenResponse, error) {
+	ok, err := s.notifSvc.CheckUserNotifValue(ctx, model.Phone(req.GetPhone()), req.GetOtp())
+	if err != nil {
+		return nil, err
+	}
+
+	if !ok {
+		return nil, ErrWrongOTP
+	}
+
+	user, err := s.svc.GetUserByFilter(ctx, &model.UserFilter{
+		Phone: req.GetPhone(),
+	})
+
+	access, err := s.createToken(uint(user.ID), req.GetPhone(), false)
+	if err != nil {
+		return nil, err
+	}
+
+	refresh, err := s.createToken(uint(user.ID), req.GetPhone(), true)
 
 	if err != nil {
 		return nil, err

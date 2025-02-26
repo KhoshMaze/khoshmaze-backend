@@ -8,7 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func SendSMS(data *model.OutboxData, cfg config.SMSConfig) {
+func SendSMS(data *model.OutboxData, cfg *config.SMSConfig) {
 	agent := fiber.Post(cfg.ApiBaseURL + cfg.Verification.URL)
 	// agent.Debug()
 	agent.Request().Header.Add("x-api-key", cfg.ApiKey)

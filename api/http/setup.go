@@ -43,9 +43,10 @@ func registerAuthAPI(appContainer app.App, cfg config.ServerConfig, router fiber
 	router.Post("/register", middlewares.SetTransaction(appContainer.DB()), handlers.SignUp(userSvcGetter))
 	router.Post("/refresh", handlers.RefreshToken(userSvcGetter))
 	router.Post("/send-otp", handlers.SendOTP(userSvcGetter))
+	router.Post("/login",handlers.Login(userSvcGetter))
+
 	router.Use(middlewares.AuthMiddleware([]byte(cfg.AuthSecret)))
 	router.Post("/logout", handlers.Logout(userSvcGetter))
 	router.Post("/qrcode", handlers.GenerateQrCode())
 	router.Get("/test", handlers.Test())
-	// router.Post("/login")
 }

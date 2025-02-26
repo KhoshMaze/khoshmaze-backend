@@ -80,7 +80,7 @@ func (s *service) Handle(ctx context.Context, outboxes []model.NotificationOutbo
 
 	for _, outbox := range outboxes {
 		fmt.Printf("dest : %s, content : %s\n", outbox.Data.Dest, outbox.Data.Content)
-		go notification.SendSMS(&outbox.Data, s.cfg)
+		go notification.SendSMS(&outbox.Data, &s.cfg)
 	}
 
 	if err := s.outboxRepo.UpdateBulkStatuses(ctx, common.OutboxStatusDone, outBoxIDs...); err != nil {

@@ -19,7 +19,7 @@ func SignUp(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 
 		resp, err := svc.SignUp(c.UserContext(), &req)
 		if err != nil {
-			if errors.Is(err, errors.New("")) {
+			if errors.Is(err, service.ErrUserAlreadyExists) || errors.Is(err, service.ErrWrongOTP) {
 				return fiber.NewError(fiber.StatusBadRequest, err.Error())
 			}
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
@@ -47,7 +47,7 @@ func SendOTP(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 		return c.Status(fiber.StatusOK).JSON(
 			fiber.Map{
 				"message": "sent otp",
-				"status": "ok", 
+				"status":  "ok",
 			},
 		)
 	}
@@ -70,6 +70,26 @@ func Logout(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 	}
 }
 
+func Login(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		svc := svcGetter(ctx.UserContext())
+		var req pb.UserLoginRequest
+
+		if err := ctx.BodyParser(&req); err != nil {
+			return fiber.ErrBadRequest
+		}
+
+		resp, err := svc.Login(ctx.UserContext(), &req)
+		if err != nil {
+			return fiber.ErrInternalServerError
+		}
+
+		logger := context.GetLogger(ctx.UserContext())
+		logger.Info("user logged in")
+
+		return ctx.Status(fiber.StatusAccepted).JSON(resp)
+	}
+}
 func RefreshToken(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
