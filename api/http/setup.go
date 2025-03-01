@@ -8,7 +8,7 @@ import (
 	"github.com/KhoshMaze/khoshmaze-backend/config"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/app"
 	json "github.com/goccy/go-json"
-	"github.com/gofiber/contrib/swagger"
+	"github.com/swaggo/fiber-swagger"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
 )
@@ -20,14 +20,7 @@ func Run(appContainer app.App, cfg config.ServerConfig) error {
 		JSONDecoder: json.Unmarshal,
 	})
 
-	router.Use(swagger.New(
-		swagger.Config{
-			// BasePath: "/docs",
-			FilePath: "./docs/swagger.yaml",
-			// Path: "v1",
-			CacheAge: 0,
-		},
-	))
+	router.Get("/docs/*", fiberSwagger.WrapHandler)
 	api := router.Group("/api/v1", middlewares.SetUserContext)
 	api.Get("/metrics", monitor.New())
 	// api.Use(limiter.New())

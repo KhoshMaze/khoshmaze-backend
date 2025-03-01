@@ -9,6 +9,17 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// SignUp handles user registration requests.
+// @Summary Register a new user
+// @Description Register a new user with phone and OTP
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body pb.UserSignUpRequest true "User sign-up request"
+// @Success 201 {object} pb.UserTokenResponse
+// @Failure 400
+// @Failure 500
+// @Router /register [post]
 func SignUp(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		svc := svcGetter(c.UserContext())
@@ -43,6 +54,16 @@ func SignUp(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 	}
 }
 
+// SendOTP handles requests to send a one-time password (OTP) to the user.
+// @Summary Send OTP to user
+// @Description Send a one-time password to the user's phone
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body pb.OtpRequest true "OTP request"
+// @Success 200 {object} map[string]string
+// @Failure 400
+// @Router /send-otp [post]
 func SendOTP(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		svc := svcGetter(c.UserContext())
@@ -64,6 +85,14 @@ func SendOTP(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 	}
 }
 
+// Logout handles user logout requests.
+// @Summary Logout user
+// @Description Invalidate the user's refresh token and log them out
+// @Tags users
+// @Produce json
+// @Success 202 {object} map[string]string
+// @Failure 400
+// @Router /logout [post]
 func Logout(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		svc := svcGetter(c.UserContext())
@@ -81,6 +110,17 @@ func Logout(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 	}
 }
 
+// Login handles user login requests.
+// @Summary Login user
+// @Description Authenticate the user and issue a refresh token
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body pb.UserLoginRequest true "User login request"
+// @Success 202 {object} pb.UserTokenResponse
+// @Failure 400
+// @Failure 500
+// @Router /login [post]
 func Login(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		svc := svcGetter(ctx.UserContext())
@@ -111,6 +151,15 @@ func Login(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 		return ctx.Status(fiber.StatusAccepted).JSON(resp)
 	}
 }
+
+// RefreshToken handles requests to refresh the user's authentication token.
+// @Summary Refresh authentication token
+// @Description Validate the current refresh token and issue a new one
+// @Tags users
+// @Produce json
+// @Success 200 {object} pb.UserTokenResponse
+// @Failure 400
+// @Router /refresh [post]
 func RefreshToken(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
@@ -140,6 +189,13 @@ func RefreshToken(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 	}
 }
 
+// Test is a simple handler for testing purposes.
+// @Summary Test endpoint
+// @Description A simple test endpoint
+// @Tags test
+// @Produce json
+// @Success 200 {object} map[string]string
+// @Router /test [get]
 func Test() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		logger := context.GetLogger(ctx.UserContext())

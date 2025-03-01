@@ -1,0 +1,166 @@
+definitions:
+  pb.OtpRequest:
+    properties:
+      phone:
+        type: string
+      type:
+        type: integer
+    type: object
+  pb.UserLoginRequest:
+    properties:
+      otp:
+        type: string
+      phone:
+        type: string
+    type: object
+  pb.UserSignUpRequest:
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      otp:
+        type: string
+      phone:
+        type: string
+    type: object
+  pb.UserTokenResponse:
+    properties:
+      accessMaxAge:
+        type: integer
+      accessToken:
+        type: string
+      refreshMaxAge:
+        type: integer
+      refreshToken:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate the user and issue a refresh token
+      parameters:
+      - description: User login request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/pb.UserLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/pb.UserTokenResponse'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Login user
+      tags:
+      - users
+  /logout:
+    post:
+      description: Invalidate the user's refresh token and log them out
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+      summary: Logout user
+      tags:
+      - users
+  /refresh:
+    post:
+      description: Validate the current refresh token and issue a new one
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pb.UserTokenResponse'
+        "400":
+          description: Bad Request
+      summary: Refresh authentication token
+      tags:
+      - users
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with phone and OTP
+      parameters:
+      - description: User sign-up request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/pb.UserSignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/pb.UserTokenResponse'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Register a new user
+      tags:
+      - users
+  /send-otp:
+    post:
+      consumes:
+      - application/json
+      description: Send a one-time password to the user's phone
+      parameters:
+      - description: OTP request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/pb.OtpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+      summary: Send OTP to user
+      tags:
+      - users
+  /test:
+    get:
+      description: A simple test endpoint
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Test endpoint
+      tags:
+      - test
+swagger: "2.0"
