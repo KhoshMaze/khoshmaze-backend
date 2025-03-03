@@ -23,5 +23,6 @@ go.work.sum
 
 # env file
 .env
-config.json
+*config.json
 dev_*
+./docs/docs.go
