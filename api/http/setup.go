@@ -47,6 +47,7 @@ func Run(appContainer app.App, cfg config.ServerConfig) error {
 	registerGlobalRoutes(appContainer, cfg, api, userSvcGetter)
 
 	registerUserEndpoints(appContainer, cfg, api, userSvcGetter)
+	registerRestaurantEndpoints(appContainer, cfg, api)
 	// return router.ListenTLS(fmt.Sprintf(":%d", cfg.Port), cfg.SSLCertPath, cfg.SSLKeyPath)
 	return router.Listen(fmt.Sprintf(":%d", cfg.Port))
 
@@ -59,6 +60,11 @@ func registerUserEndpoints(appContainer app.App, cfg config.ServerConfig, router
 	router.Post("/logout", middlewares.SetTransaction(appContainer.DB()), handlers.Logout(userSvcGetter))
 	router.Post("/qrcode", handlers.GenerateQrCode())
 	router.Get("/test", handlers.Test())
+}
+
+func registerRestaurantEndpoints(appContainer app.App, cfg config.ServerConfig, router fiber.Router) {
+	router = router.Group("/restaurant") 
+	// router.Get("/:name/:id<int>", nil) 
 }
 
 func registerGlobalRoutes(appContainer app.App, cfg config.ServerConfig, router fiber.Router, userSvcGetter handlers.ServiceGetter[*service.UserService]) {

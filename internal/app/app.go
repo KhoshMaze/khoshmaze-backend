@@ -13,6 +13,8 @@ import (
 	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/common"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/notification"
 	notifPort "github.com/KhoshMaze/khoshmaze-backend/internal/domain/notification/port"
+	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/restaurant"
+	restaurantPort "github.com/KhoshMaze/khoshmaze-backend/internal/domain/restaurant/port"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/user"
 	userPort "github.com/KhoshMaze/khoshmaze-backend/internal/domain/user/port"
 	"github.com/go-co-op/gocron/v2"
@@ -27,6 +29,7 @@ type app struct {
 	userService         userPort.Service
 	notificationService notifPort.Service
 	redisProvider       cache.Provider
+	restaurantService   restaurantPort.Service
 }
 
 func (a *app) DB() *gorm.DB {
@@ -100,6 +103,22 @@ func (a *app) NotificationService(ctx context.Context) notifPort.Service {
 	}
 
 	return a.notifServiceWithDB(db)
+}
+
+func (a *app) RestaurantService(ctx context.Context) restaurantPort.Service {
+	db := appCtx.GetDB(ctx)
+	if db == nil {
+		if a.restaurantService == nil {
+			a.restaurantService = a.restaurantServiceWithDB(a.db)
+		}
+		return a.restaurantService
+	}
+
+	return a.restaurantServiceWithDB(db)
+}
+
+func (a *app) restaurantServiceWithDB(db *gorm.DB) restaurantPort.Service {
+	return restaurant.NewService(storage.NewRestaurantRepo(db, a.redisProvider), storage.NewBranchRepo(db, a.redisProvider))
 }
 
 func MustNewApp(cfg config.Config) App {

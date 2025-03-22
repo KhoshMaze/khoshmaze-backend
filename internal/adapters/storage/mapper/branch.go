@@ -1,0 +1,27 @@
+package mapper
+
+import (
+	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/storage/types"
+	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/restaurant/model"
+	"gorm.io/gorm"
+)
+
+func BranchDomainToStorage(branchDomain *model.Branch) *types.Branch {
+	return &types.Branch{
+		Model: gorm.Model{
+			ID: branchDomain.ID,
+		},
+		RestaurantID: uint(branchDomain.RestaurantID),
+		Address:      branchDomain.Address,
+		Phone:        branchDomain.Phone,
+	}
+}
+
+func BranchStorageToDomain(branchStorage *types.Branch) *model.Branch {
+	return &model.Branch{
+		ID:           branchStorage.ID,
+		RestaurantID: branchStorage.RestaurantID,
+		Address:      branchStorage.Address,
+		Phone:        branchStorage.Phone,
+	}
+}
