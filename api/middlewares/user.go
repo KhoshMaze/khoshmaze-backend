@@ -5,12 +5,13 @@ import (
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/context"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/jwt"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/logger"
+	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/permission/model"
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
-func AuthMiddleware(secret []byte) fiber.Handler {
+func AuthMiddleware(secret []byte, permissions ...model.Permission) fiber.Handler {
 	return jwtware.New(jwtware.Config{
 		SigningKey: jwtware.SigningKey{Key: secret},
 		Claims:     &jwt.UserClaims{},
@@ -23,16 +24,18 @@ func AuthMiddleware(secret []byte) fiber.Handler {
 			if userClaims.IP != ctx.IP() {
 				return fiber.ErrUnauthorized
 			}
+			if !userClaims.HasAllPermissions(permissions...) {
+				return fiber.ErrForbidden
+			}
+
 			logger := context.GetLogger(ctx.UserContext())
 			context.SetLogger(ctx.UserContext(), logger.With("user_id", userClaims.UserID))
-
 			return ctx.Next()
 		},
 		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
 			return fiber.NewError(fiber.StatusUnauthorized, err.Error())
 		},
 	})
-
 }
 
 func SetUserContext(c *fiber.Ctx) error {

@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/permission/model"
 )
 
 type Subscribtion uint
@@ -48,6 +50,7 @@ type User struct {
 	FirstName        string
 	LastName         string
 	Phone            Phone
+	Permissions      model.Permission
 	SubscribtionType Subscribtion
 }
 

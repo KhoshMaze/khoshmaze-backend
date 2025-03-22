@@ -16,6 +16,7 @@ import (
 	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/user/model"
 	userPort "github.com/KhoshMaze/khoshmaze-backend/internal/domain/user/port"
 	jwt5 "github.com/golang-jwt/jwt/v5"
+	perm "github.com/KhoshMaze/khoshmaze-backend/internal/domain/permission/model"
 )
 
 var (
@@ -61,17 +62,21 @@ func (s *UserService) SignUp(ctx context.Context, req *pb.UserSignUpRequest, use
 	}); user != nil {
 		return nil, ErrUserAlreadyExists
 	}
-	userId, err := s.svc.CreateUser(ctx, model.User{
+
+	user := model.User{
 		FirstName: req.GetFirstName(),
 		LastName:  req.GetLastName(),
 		Phone:     model.Phone(req.GetPhone()),
-	})
+		Permissions: perm.ReadUser + perm.WriteUser,
+	}
+
+	userId, err := s.svc.CreateUser(ctx, user)
 
 	if err != nil {
 		return nil, ErrUserOnCreate
 	}
 
-	return s.generateTokenResponse(&jwt.UserClaims{UserID: uint(userId), Phone: req.GetPhone(), IP: userIP}, true)
+	return s.generateTokenResponse(&jwt.UserClaims{UserID: uint(userId), Phone: req.GetPhone(), IP: userIP, Permissions: uint64(user.Permissions)}, true)
 
 }
 
@@ -89,7 +94,7 @@ func (s *UserService) Login(ctx context.Context, req *pb.UserLoginRequest, userI
 		Phone: req.GetPhone(),
 	})
 
-	return s.generateTokenResponse(&jwt.UserClaims{UserID: uint(user.ID), Phone: string(user.Phone), IP: userIP}, true)
+	return s.generateTokenResponse(&jwt.UserClaims{UserID: uint(user.ID), Phone: string(user.Phone), IP: userIP, Permissions: uint64(user.Permissions)}, true)
 
 }
 
