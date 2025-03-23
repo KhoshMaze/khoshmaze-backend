@@ -2,19 +2,18 @@ package model
 
 import (
 	"errors"
-
-	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/user/model"
 )
 
 type Restaurant struct {
-	ID      uint
-	Name    string
-	URL     string
-	OwnerID model.UserID
+	ID       uint
+	Name     string
+	URL      string
+	OwnerID  uint
+	Branches []*Branch
 }
 
 type RestaurantFilter struct {
-	ID  model.UserID
+	ID  uint
 	URL string
 }
 

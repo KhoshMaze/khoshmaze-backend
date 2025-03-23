@@ -58,6 +58,8 @@ func (a *app) setDB() error {
 		&types.TokenBlacklist{},
 		&types.Outbox{},
 		&types.Notification{},
+		&types.Restaurant{},
+		&types.Branch{},
 	); err != nil {
 		return err
 	}

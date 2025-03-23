@@ -2,13 +2,14 @@ package mapper
 
 import (
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/storage/types"
-	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/user/model"
 	permModel "github.com/KhoshMaze/khoshmaze-backend/internal/domain/permission/model"
+	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/user/model"
+	restaurantModel "github.com/KhoshMaze/khoshmaze-backend/internal/domain/restaurant/model"
 	"gorm.io/gorm"
 )
 
 func UserDomainToStorage(userDomain model.User) *types.User {
-	return &types.User{
+	user := types.User{
 		Model: gorm.Model{
 			ID:        uint(userDomain.ID),
 			CreatedAt: userDomain.CreatedAt,
@@ -19,12 +20,18 @@ func UserDomainToStorage(userDomain model.User) *types.User {
 		Phone:            string(userDomain.Phone),
 		SubscribtionType: uint(userDomain.SubscribtionType),
 		Permissions:      uint64(userDomain.Permissions),
+		Restaurants:      make([]*types.Restaurant, 0),
 	}
 
+	for _, restaurant := range userDomain.Restaurants {
+		user.Restaurants = append(user.Restaurants, RestaurantDomainToStorage(restaurant))
+	}
+
+	return &user
 }
 
 func UserStorageToDomain(user types.User) *model.User {
-	return &model.User{
+	userDomain := &model.User{
 		ID:               model.UserID(user.ID),
 		CreatedAt:        user.CreatedAt,
 		UpdatedAt:        user.UpdatedAt,
@@ -33,5 +40,12 @@ func UserStorageToDomain(user types.User) *model.User {
 		Phone:            model.Phone(user.Phone),
 		SubscribtionType: IntegerToSubscribtionType(user.SubscribtionType),
 		Permissions:      permModel.Permission(user.Permissions),
+		Restaurants:      make([]*restaurantModel.Restaurant, 0),
 	}
+
+	for _, restaurant := range user.Restaurants {
+		userDomain.Restaurants = append(userDomain.Restaurants, RestaurantStorageToDomain(restaurant))
+	}
+
+	return userDomain
 }

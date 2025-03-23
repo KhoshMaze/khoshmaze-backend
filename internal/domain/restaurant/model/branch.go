@@ -3,6 +3,7 @@ package model
 type Branch struct {
 	ID           uint
 	RestaurantID uint
+	Name         string
 	Address      string
 	Phone        string
 }

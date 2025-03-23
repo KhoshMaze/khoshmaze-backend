@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/permission/model"
+	restaurantModel "github.com/KhoshMaze/khoshmaze-backend/internal/domain/restaurant/model"
 )
 
 type Subscribtion uint
@@ -52,6 +53,7 @@ type User struct {
 	Phone            Phone
 	Permissions      model.Permission
 	SubscribtionType Subscribtion
+	Restaurants      []*restaurantModel.Restaurant
 }
 
 type TokenBlacklist struct {
