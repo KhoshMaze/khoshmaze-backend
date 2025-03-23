@@ -13,4 +13,5 @@ type Repo interface {
 	CreateOutbox(ctx context.Context, outbox *model.NotificationOutbox) error
 	QueryOutboxes(ctx context.Context, limit uint, status common.OutboxStatus) ([]model.NotificationOutbox, error)
 	GetUserNotifValue(ctx context.Context, phone userDomain.Phone) (string, error)
+	DeleteUserNotifValue(ctx context.Context, phone userDomain.Phone) error
 }

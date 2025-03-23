@@ -86,3 +86,7 @@ func (r *notifRepo) GetUserNotifValue(ctx context.Context, phone userDomain.Phon
 	v, err := r.cacheProvider.Get(ctx, fmt.Sprintf("notif.%s", phone))
 	return conv.ToStr(v), err
 }
+
+func (r *notifRepo) DeleteUserNotifValue(ctx context.Context, phone userDomain.Phone) error {
+	return r.cacheProvider.Del(ctx, fmt.Sprintf("notif.%s", phone))
+}

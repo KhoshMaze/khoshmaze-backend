@@ -13,10 +13,10 @@ import (
 	timeutils "github.com/KhoshMaze/khoshmaze-backend/internal/adapters/time"
 	notifDomain "github.com/KhoshMaze/khoshmaze-backend/internal/domain/notification/model"
 	notifPort "github.com/KhoshMaze/khoshmaze-backend/internal/domain/notification/port"
+	perm "github.com/KhoshMaze/khoshmaze-backend/internal/domain/permission/model"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/user/model"
 	userPort "github.com/KhoshMaze/khoshmaze-backend/internal/domain/user/port"
 	jwt5 "github.com/golang-jwt/jwt/v5"
-	perm "github.com/KhoshMaze/khoshmaze-backend/internal/domain/permission/model"
 )
 
 var (
@@ -25,6 +25,7 @@ var (
 	ErrInvalidRefreshToken = errors.New("invalid refresh token")
 	ErrUserAlreadyExists   = errors.New("user already exists")
 	ErrUserOnCreate        = errors.New("couldn't create the user")
+	ErrUserNotFound        = errors.New("user not found")
 )
 
 type UserService struct {
@@ -64,9 +65,9 @@ func (s *UserService) SignUp(ctx context.Context, req *pb.UserSignUpRequest, use
 	}
 
 	user := model.User{
-		FirstName: req.GetFirstName(),
-		LastName:  req.GetLastName(),
-		Phone:     model.Phone(req.GetPhone()),
+		FirstName:   req.GetFirstName(),
+		LastName:    req.GetLastName(),
+		Phone:       model.Phone(req.GetPhone()),
 		Permissions: perm.ReadUser + perm.WriteUser,
 	}
 
@@ -76,6 +77,7 @@ func (s *UserService) SignUp(ctx context.Context, req *pb.UserSignUpRequest, use
 		return nil, ErrUserOnCreate
 	}
 
+	s.notifSvc.DeleteUserNotifValue(ctx, model.Phone(req.GetPhone()))
 	return s.generateTokenResponse(&jwt.UserClaims{UserID: uint(userId), Phone: req.GetPhone(), IP: userIP, Permissions: uint64(user.Permissions)}, true)
 
 }
@@ -94,34 +96,38 @@ func (s *UserService) Login(ctx context.Context, req *pb.UserLoginRequest, userI
 		Phone: req.GetPhone(),
 	})
 
+	if err != nil || user == nil {
+		return nil, ErrUserNotFound
+	}
+
+	s.notifSvc.DeleteUserNotifValue(ctx, model.Phone(req.GetPhone()))
 	return s.generateTokenResponse(&jwt.UserClaims{UserID: uint(user.ID), Phone: string(user.Phone), IP: userIP, Permissions: uint64(user.Permissions)}, true)
 
 }
 
-func (s *UserService) SendOTP(ctx context.Context, req *pb.OtpRequest) error {
+func (s *UserService) SendOTP(ctx context.Context, req *pb.OtpRequest) (string, error) {
 	var (
-		phone   = req.GetPhone()
-		otpType = req.GetType()
+		phone = req.GetPhone()
 	)
 	user, err := s.svc.GetUserByFilter(ctx, &model.UserFilter{
 		Phone: phone,
 	})
 
-	switch otpType {
-	case 1: // for register
-		if user != nil {
-			return ErrUserAlreadyExists
-		}
-	case 2: // for login
+	code := rand.IntN(999999) + 100000
+	notif := notifDomain.NewNotification(0, fmt.Sprint(code), notifDomain.NotifTypeSMS, true, time.Second*150, model.Phone(phone))
+	err = s.notifSvc.Send(ctx, notif)
+
+	if !notif.ForAuthorization {
 		if err != nil {
-			return err
+			return "", err
 		}
-	case 0:
-		return ErrWrongOTPType
 	}
 
-	code := rand.IntN(999999) + 100000
-	return s.notifSvc.Send(ctx, notifDomain.NewNotification(0, fmt.Sprint(code), notifDomain.NotifTypeSMS, true, time.Second*150, model.Phone(phone)))
+	if user != nil {
+		return "login", nil
+	}
+
+	return "register", nil
 }
 
 func (s *UserService) Logout(ctx context.Context, token string) error {

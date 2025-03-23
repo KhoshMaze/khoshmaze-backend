@@ -106,3 +106,7 @@ func (s *service) CheckUserNotifValue(ctx context.Context, phone userDomain.Phon
 
 	return expected == val, nil
 }
+
+func (s *service) DeleteUserNotifValue(ctx context.Context, phone userDomain.Phone) error {
+	return s.repo.DeleteUserNotifValue(ctx, phone)
+}

@@ -31,9 +31,9 @@ func SignUp(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 		resp, err := svc.SignUp(c.UserContext(), &req, c.IP())
 		if err != nil {
 			if errors.Is(err, service.ErrUserAlreadyExists) || errors.Is(err, service.ErrWrongOTP) {
-				return fiber.NewError(fiber.StatusBadRequest, err.Error())
+				return fiber.NewError(fiber.StatusConflict, err.Error())
 			}
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 
 		c.Cookie(&fiber.Cookie{
@@ -72,14 +72,17 @@ func SendOTP(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 		if err := c.BodyParser(&req); err != nil {
 			return fiber.ErrBadRequest
 		}
-		if err := svc.SendOTP(c.UserContext(), &req); err != nil {
-			return err
+
+		category, err := svc.SendOTP(c.UserContext(), &req)
+		if err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 
 		return c.Status(fiber.StatusOK).JSON(
 			fiber.Map{
 				"message": "sent otp",
 				"status":  "ok",
+				"category": category,
 			},
 		)
 	}
@@ -132,7 +135,7 @@ func Login(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 
 		resp, err := svc.Login(ctx.UserContext(), &req, ctx.IP())
 		if err != nil {
-			return fiber.ErrInternalServerError
+			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}
 
 		logger := context.GetLogger(ctx.UserContext())
