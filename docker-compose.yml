@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+  namak-server:
+    container_name: namak-server
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes: 
+      - ./config.json:/etc/config.json:ro
+      - ./logger-config.json:/app/logger-config.json:ro 
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+    command: ["./khoshmaze-api" ,"--config" ,"/etc/config.json"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:8080/livez || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  postgres:
+    container_name: namak-database
+    image: postgres:13-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${PG_USERNAME}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: khoshmaze
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USERNAME}"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  redis:
+    container_name: namak-redis
+    image: redis:alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

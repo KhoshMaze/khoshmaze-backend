@@ -1,16 +1,21 @@
-FROM golang:1.23 as builder 
+FROM golang:1.23 AS builder 
 
-WORKDIR /github.com/KhoshMaze/khoshmaze-backend 
+WORKDIR /app
 
-RUN CGO_ENABLED=0 go build -o ./khoshmaze-api cmd/main.go
+COPY go.mod go.sum ./
+RUN go mod download
 
-FROM alpine as deploy
+COPY . .
+
+RUN CGO_ENABLED=0 go build -o ./khoshmaze-api ./cmd/main.go
+
+FROM alpine AS deploy
+
+WORKDIR /app 
 
 RUN apk add --no-cache tzdata
 ENV TZ=Asia/Tehran
 
-WORKDIR /github.com/KhoshMaze/khoshmaze-backend 
+COPY --from=builder /app/khoshmaze-api .
 
-COPY --from=builder /github.com/KhoshMaze/khoshmaze-backend/khoshmaze-api ./khoshmaze-api
-
-CMD ["./khoshmaze-api" , "--config" , "/etc/config.json"]
+# CMD ["./khoshmaze-api", "--config", "/etc/config.json"]
