@@ -5,8 +5,10 @@ import (
 	"errors"
 
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/cache"
+	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/fp"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/storage/mapper"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/storage/types"
+	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/common"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/restaurant/model"
 	"gorm.io/gorm"
 )
@@ -45,4 +47,29 @@ func (r *restaurantRepo) GetByFilter(ctx context.Context, filter *model.Restaura
 	}
 
 	return mapper.RestaurantStorageToDomain(&restaurant), nil
+}
+
+func (r *restaurantRepo) GetAll(ctx context.Context, pagination *common.Pagination) (*common.PaginatedResponse[*model.Restaurant], error) {
+	var restaurants []types.Restaurant
+	var totalItems int64
+
+	if err := r.db.Table("restaurants").WithContext(ctx).Count(&totalItems).Error; err != nil {
+		return nil, err
+	}
+
+	err := r.db.Table("restaurants").
+		WithContext(ctx).
+		Offset(pagination.Offset()).
+		Limit(pagination.PageSize).
+		Find(&restaurants).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	restaurantsDomain := fp.Map(restaurants, func(restaurant types.Restaurant) *model.Restaurant {
+		return mapper.RestaurantStorageToDomain(&restaurant)
+	})
+
+	return common.NewPaginatedResponse(restaurantsDomain, totalItems, pagination.Page, pagination.PageSize), nil
 }

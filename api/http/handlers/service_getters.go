@@ -16,3 +16,9 @@ func UserServiceGetter(appContainer app.App, cfgServer config.ServerConfig) Serv
 			cfgServer.AuthSecret, cfgServer.RefreshSecret, cfgServer.AuthExpMinute, cfgServer.AuthRefreshMinute,appContainer.NotificationService(ctx))
 	}
 }
+
+func RestaurantServiceGetter(appContainer app.App) ServiceGetter[*service.RestaurantService] {
+	return func(ctx context.Context) *service.RestaurantService {
+		return service.NewRestaurantService(appContainer.RestaurantService(ctx))
+	}
+}

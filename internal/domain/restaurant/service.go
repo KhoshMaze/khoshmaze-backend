@@ -3,6 +3,7 @@ package restaurant
 import (
 	"context"
 
+	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/common"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/restaurant/model"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/restaurant/port"
 )
@@ -37,3 +38,6 @@ func (s *service) GetBranchByFilter(ctx context.Context, filter *model.BranchFil
 	return s.branchRepo.GetByFilter(ctx, filter)
 }
 
+func (s *service) GetAllRestaurants(ctx context.Context, pagination *common.Pagination) (*common.PaginatedResponse[*model.Restaurant], error) {
+	return s.restaurantRepo.GetAll(ctx, pagination)
+}

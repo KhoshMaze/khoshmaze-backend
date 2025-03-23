@@ -11,6 +11,7 @@ import (
 	perm "github.com/KhoshMaze/khoshmaze-backend/internal/domain/permission/model"
 	json "github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
 	fiberSwagger "github.com/swaggo/fiber-swagger"
 )
@@ -38,7 +39,7 @@ func Run(appContainer app.App, cfg config.ServerConfig) error {
 		JSONEncoder: json.Marshal,
 		JSONDecoder: json.Unmarshal,
 	})
-
+	router.Use(healthcheck.New())
 	router.Get("/docs/*", fiberSwagger.WrapHandler)
 	api := router.Group("/api/v1", middlewares.SetUserContext)
 	api.Get("/metrics", monitor.New())
@@ -46,25 +47,29 @@ func Run(appContainer app.App, cfg config.ServerConfig) error {
 	userSvcGetter := handlers.UserServiceGetter(appContainer, cfg)
 	registerGlobalRoutes(appContainer, cfg, api, userSvcGetter)
 
-	registerUserEndpoints(appContainer, cfg, api, userSvcGetter)
-	registerRestaurantEndpoints(appContainer, cfg, api)
+	// Authentication Required Endpoints
+	secret := []byte(cfg.AuthSecret)
+	router.Use(middlewares.AuthMiddleware(secret))
+
+	registerUserEndpoints(appContainer, api, userSvcGetter)
+	restaurantSvcGetter := handlers.RestaurantServiceGetter(appContainer)
+	registerRestaurantEndpoints(appContainer, api, restaurantSvcGetter)
 	// return router.ListenTLS(fmt.Sprintf(":%d", cfg.Port), cfg.SSLCertPath, cfg.SSLKeyPath)
 	return router.Listen(fmt.Sprintf(":%d", cfg.Port))
 
 }
 
-func registerUserEndpoints(appContainer app.App, cfg config.ServerConfig, router fiber.Router, userSvcGetter handlers.ServiceGetter[*service.UserService]) {
-	secret := []byte(cfg.AuthSecret)
-
-	router.Use(middlewares.AuthMiddleware(secret, userR))
+func registerUserEndpoints(appContainer app.App, router fiber.Router, userSvcGetter handlers.ServiceGetter[*service.UserService]) {
 	router.Post("/logout", middlewares.SetTransaction(appContainer.DB()), handlers.Logout(userSvcGetter))
 	router.Post("/qrcode", handlers.GenerateQrCode())
 	router.Get("/test", handlers.Test())
 }
 
-func registerRestaurantEndpoints(appContainer app.App, cfg config.ServerConfig, router fiber.Router) {
-	router = router.Group("/restaurant") 
-	// router.Get("/:name/:id<int>", nil) 
+func registerRestaurantEndpoints(appContainer app.App, router fiber.Router, restaurantSvcGetter handlers.ServiceGetter[*service.RestaurantService]) {
+	router = router.Group("/restaurants")
+	router.Post("/", middlewares.SetTransaction(appContainer.DB()), handlers.CreateRestaurant(restaurantSvcGetter))
+	router.Get("/", middlewares.Authorizer(adminRW), handlers.GetRestaurants(restaurantSvcGetter))
+	router.Get("/:name/:id<int>", handlers.GetBranch(restaurantSvcGetter))
 }
 
 func registerGlobalRoutes(appContainer app.App, cfg config.ServerConfig, router fiber.Router, userSvcGetter handlers.ServiceGetter[*service.UserService]) {
