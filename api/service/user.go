@@ -165,6 +165,17 @@ func (s *UserService) RefreshToken(ctx context.Context, token string, userIP str
 		return nil, ErrInvalidRefreshToken
 	}
 
+	user, err := s.svc.GetUserByFilter(ctx, &model.UserFilter{
+		ID: model.UserID(userClaims.UserID),
+	})
+
+	if err != nil || user == nil {
+		return nil, ErrUserNotFound
+	}
+
+	userClaims.Permissions = uint64(user.Permissions)
+	userClaims.Phone = string(user.Phone)
+
 	if time.Until(userClaims.ExpiresAt.Time)/time.Hour < 12 {
 
 		err = s.svc.CreateBannedToken(ctx, model.TokenBlacklist{
