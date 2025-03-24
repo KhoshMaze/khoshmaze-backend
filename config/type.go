@@ -42,12 +42,13 @@ type JobsConfig struct {
 type SMSConfig struct {
 	ApiKey       string                `json:"apiKey"`
 	ApiBaseURL   string                `json:"apiBaseURL"`
+	Sender       string                `json:"sender"`
 	Verification SMSVerificationConfig `json:"verification"`
 }
 
 type SMSVerificationConfig struct {
 	URL        string `json:"url"`
-	TemplateID int    `json:"templateID"`
+	TemplateID string    `json:"templateID"`
 	OtpExpMin  int    `json:"otpExpMin"`
 }
 
