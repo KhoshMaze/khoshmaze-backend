@@ -107,7 +107,7 @@ func GetBranch(svcGetter ServiceGetter[*service.RestaurantService]) fiber.Handle
 		name := c.Params("name")
 		branch, err := svc.GetBranch(c.Context(), name, uint(branchID))
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"error": ErrBranchNotFound,
 			})
 		}

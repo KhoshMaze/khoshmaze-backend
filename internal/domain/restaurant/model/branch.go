@@ -9,5 +9,6 @@ type Branch struct {
 }
 
 type BranchFilter struct {
-	ID uint
+	ID             uint
+	RestaurantName string
 }

@@ -45,6 +45,7 @@ func Run(appContainer app.App, cfg config.ServerConfig) error {
 	api.Get("/metrics", monitor.New())
 
 	userSvcGetter := handlers.UserServiceGetter(appContainer, cfg)
+	restaurantSvcGetter := handlers.RestaurantServiceGetter(appContainer)
 	registerGlobalRoutes(appContainer, cfg, api, userSvcGetter)
 
 	// Authentication Required Endpoints
@@ -52,7 +53,6 @@ func Run(appContainer app.App, cfg config.ServerConfig) error {
 	router.Use(middlewares.AuthMiddleware(secret))
 
 	registerUserEndpoints(appContainer, api, userSvcGetter)
-	restaurantSvcGetter := handlers.RestaurantServiceGetter(appContainer)
 	registerRestaurantEndpoints(appContainer, api, restaurantSvcGetter)
 	// return router.ListenTLS(fmt.Sprintf(":%d", cfg.Port), cfg.SSLCertPath, cfg.SSLKeyPath)
 	return router.Listen(fmt.Sprintf(":%d", cfg.Port))
@@ -66,10 +66,11 @@ func registerUserEndpoints(appContainer app.App, router fiber.Router, userSvcGet
 }
 
 func registerRestaurantEndpoints(appContainer app.App, router fiber.Router, restaurantSvcGetter handlers.ServiceGetter[*service.RestaurantService]) {
+	
 	router = router.Group("/restaurants")
+	router.Get("/:name/:id<int>", handlers.GetBranch(restaurantSvcGetter))
 	router.Post("/", middlewares.SetTransaction(appContainer.DB()), handlers.CreateRestaurant(restaurantSvcGetter))
 	router.Get("/", middlewares.Authorizer(adminRW), handlers.GetRestaurants(restaurantSvcGetter))
-	router.Get("/:name/:id<int>", handlers.GetBranch(restaurantSvcGetter))
 }
 
 func registerGlobalRoutes(appContainer app.App, cfg config.ServerConfig, router fiber.Router, userSvcGetter handlers.ServiceGetter[*service.UserService]) {

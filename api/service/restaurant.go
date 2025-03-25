@@ -29,9 +29,11 @@ func (s *RestaurantService) CreateRestaurant(ctx context.Context, ownerID uint, 
 
 func (s *RestaurantService) GetBranch(ctx context.Context, restaurant string, id uint) (*pb.GetBranchResponse, error) {
 	branch, err := s.svc.GetBranchByFilter(ctx, &model.BranchFilter{
-		ID: id,
+		ID:             id,
+		RestaurantName: restaurant,
 	})
-	if err != nil {
+
+	if err != nil || branch == nil {
 		return nil, err
 	}
 	return &pb.GetBranchResponse{
