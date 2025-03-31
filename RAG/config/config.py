@@ -44,9 +44,9 @@ class Config:
 
     def __init__(self, config_path: str):
         s, r, b = self.__load_config(config_path)
-        self.__server = s
-        self.__redis = r
-        self.__bot = b
+        self.server = s
+        self.redis = r
+        self.bot = b
         self.instance = self
         
     @staticmethod
@@ -59,11 +59,3 @@ class Config:
                 AIConfig(config["bot"]),
             )
 
-    def Server(self):
-        return self.__server
-
-    def Redis(self):
-        return self.__redis
-
-    def Bot(self):
-        return self.__bot

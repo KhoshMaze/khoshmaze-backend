@@ -28,3 +28,4 @@ dev_*
 ./docs/docs.go
 *.sh
 *settings.json
+.venv

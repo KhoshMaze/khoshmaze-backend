@@ -1,6 +1,7 @@
 import sys
 from config.config import Config
 from app.app import App
+from app.api.setup import Server
 
 def main():
 
@@ -11,7 +12,15 @@ def main():
 
     config = Config(path)
 
-    app = App(config)
+    if "--debug" in sys.argv:
+        debug = True
+    else:
+        debug = False
 
+    app = App(config, debug)
+
+    server = Server(app)
+    server.run()
+    
 if __name__ == "__main__":
     main()
