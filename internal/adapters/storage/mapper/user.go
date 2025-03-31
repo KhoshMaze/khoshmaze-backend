@@ -3,8 +3,8 @@ package mapper
 import (
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/storage/types"
 	permModel "github.com/KhoshMaze/khoshmaze-backend/internal/domain/permission/model"
-	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/user/model"
 	restaurantModel "github.com/KhoshMaze/khoshmaze-backend/internal/domain/restaurant/model"
+	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/user/model"
 	"gorm.io/gorm"
 )
 
@@ -18,7 +18,7 @@ func UserDomainToStorage(userDomain model.User) *types.User {
 		FirstName:        userDomain.FirstName,
 		LastName:         userDomain.LastName,
 		Phone:            string(userDomain.Phone),
-		SubscribtionType: uint(userDomain.SubscribtionType),
+		SubscriptionType: uint(userDomain.SubscriptionType),
 		Permissions:      uint64(userDomain.Permissions),
 		Restaurants:      make([]*types.Restaurant, 0),
 	}
@@ -38,7 +38,7 @@ func UserStorageToDomain(user types.User) *model.User {
 		FirstName:        user.FirstName,
 		LastName:         user.LastName,
 		Phone:            model.Phone(user.Phone),
-		SubscribtionType: IntegerToSubscribtionType(user.SubscribtionType),
+		SubscriptionType: IntegerToSubscriptionType(user.SubscriptionType),
 		Permissions:      permModel.Permission(user.Permissions),
 		Restaurants:      make([]*restaurantModel.Restaurant, 0),
 	}
