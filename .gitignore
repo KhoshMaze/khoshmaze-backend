@@ -27,3 +27,4 @@ go.work.sum
 dev_*
 ./docs/docs.go
 *.sh
+*settings.json

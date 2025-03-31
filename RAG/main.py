@@ -1,6 +1,6 @@
 import sys
 from config.config import Config
-
+from app.app import App
 
 def main():
 
@@ -11,6 +11,7 @@ def main():
 
     config = Config(path)
 
+    app = App(config)
 
 if __name__ == "__main__":
     main()
