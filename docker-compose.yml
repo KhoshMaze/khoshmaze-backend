@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./infra/Dockerfile
     volumes: 
       - ./config.json:/etc/config.json:ro
       - ./logger-config.json:/app/logger-config.json:ro 
