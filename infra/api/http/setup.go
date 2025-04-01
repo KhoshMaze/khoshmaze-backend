@@ -8,12 +8,12 @@ import (
 	"github.com/KhoshMaze/khoshmaze-backend/api/service"
 	"github.com/KhoshMaze/khoshmaze-backend/config"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/app"
-	perm "github.com/KhoshMaze/khoshmaze-backend/internal/domain/permission/model"
 	json "github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
 	fiberSwagger "github.com/swaggo/fiber-swagger"
+	perm "github.com/KhoshMaze/khoshmaze-backend/internal/domain/permission/model"
 )
 
 /*
@@ -25,13 +25,6 @@ import (
 	U = Update
 
 */
-
-const (
-	userR    = perm.ReadUser
-	userRW   = perm.ReadUser + perm.WriteUser
-	adminRWD = perm.ReadAdmin + perm.WriteAdmin + perm.DeleteAdmin
-	adminRW  = perm.ReadAdmin + perm.WriteAdmin
-)
 
 func Run(appContainer app.App, cfg config.ServerConfig) error {
 
@@ -66,11 +59,11 @@ func registerUserEndpoints(appContainer app.App, router fiber.Router, userSvcGet
 }
 
 func registerRestaurantEndpoints(appContainer app.App, router fiber.Router, restaurantSvcGetter handlers.ServiceGetter[*service.RestaurantService]) {
-	
+
 	router = router.Group("/restaurants")
 	router.Get("/:name/:id<int>", handlers.GetBranch(restaurantSvcGetter))
 	router.Post("/", middlewares.SetTransaction(appContainer.DB()), handlers.CreateRestaurant(restaurantSvcGetter))
-	router.Get("/", middlewares.Authorizer(adminRW), handlers.GetRestaurants(restaurantSvcGetter))
+	router.Get("/", middlewares.Authorizer(perm.RestaurantOwner), handlers.GetRestaurants(restaurantSvcGetter))
 }
 
 func registerGlobalRoutes(appContainer app.App, cfg config.ServerConfig, router fiber.Router, userSvcGetter handlers.ServiceGetter[*service.UserService]) {

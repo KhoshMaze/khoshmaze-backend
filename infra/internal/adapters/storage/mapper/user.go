@@ -15,11 +15,12 @@ func UserDomainToStorage(userDomain model.User) *types.User {
 			CreatedAt: userDomain.CreatedAt,
 			UpdatedAt: userDomain.UpdatedAt,
 		},
-		FirstName:        userDomain.FirstName,
-		LastName:         userDomain.LastName,
-		Phone:            string(userDomain.Phone),
-		Permissions:      uint64(userDomain.Permissions),
-		Restaurants:      make([]*types.Restaurant, 0),
+		FirstName:   userDomain.FirstName,
+		LastName:    userDomain.LastName,
+		Phone:       string(userDomain.Phone),
+		Permissions: uint64(userDomain.Permissions),
+		Roles:       uint64(userDomain.Roles),
+		Restaurants: make([]*types.Restaurant, 0),
 	}
 
 	for _, restaurant := range userDomain.Restaurants {
@@ -31,14 +32,15 @@ func UserDomainToStorage(userDomain model.User) *types.User {
 
 func UserStorageToDomain(user types.User) *model.User {
 	userDomain := &model.User{
-		ID:               model.UserID(user.ID),
-		CreatedAt:        user.CreatedAt,
-		UpdatedAt:        user.UpdatedAt,
-		FirstName:        user.FirstName,
-		LastName:         user.LastName,
-		Phone:            model.Phone(user.Phone),
-		Permissions:      permModel.Permission(user.Permissions),
-		Restaurants:      make([]*restaurantModel.Restaurant, 0),
+		ID:          model.UserID(user.ID),
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
+		FirstName:   user.FirstName,
+		LastName:    user.LastName,
+		Phone:       model.Phone(user.Phone),
+		Permissions: permModel.UserPermissions(user.Permissions),
+		Roles:       permModel.UserRoles(user.Roles),
+		Restaurants: make([]*restaurantModel.Restaurant, 0),
 	}
 
 	for _, restaurant := range user.Restaurants {

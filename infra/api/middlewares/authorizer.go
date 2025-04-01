@@ -6,11 +6,15 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func Authorizer(permissions ...model.Permission) fiber.Handler {
+func Authorizer(role model.UserRoles,permissions ...model.UserPermissions) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		userClaims := utils.UserClaimsFromLocals(c)
 		if userClaims == nil {
 			return c.SendStatus(fiber.StatusUnauthorized)
+		}
+
+		if !userClaims.HasRole(role) {
+			return c.SendStatus(fiber.StatusForbidden)
 		}
 
 		if !userClaims.HasAllPermissions(permissions...) {

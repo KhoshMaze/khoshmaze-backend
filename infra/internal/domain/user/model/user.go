@@ -37,14 +37,15 @@ func (u *User) Validate() error {
 }
 
 type User struct {
-	ID               UserID
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
-	FirstName        string
-	LastName         string
-	Phone            Phone
-	Permissions      model.Permission
-	Restaurants      []*restaurantModel.Restaurant
+	ID          UserID
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	FirstName   string
+	LastName    string
+	Phone       Phone
+	Permissions model.UserPermissions
+	Roles       model.UserRoles
+	Restaurants []*restaurantModel.Restaurant
 }
 
 type TokenBlacklist struct {

@@ -9,18 +9,19 @@ type UserClaims struct {
 	jwt5.RegisteredClaims
 	UserID      uint
 	Permissions uint64
+	Roles       uint64
 	Phone       string
 	IP          string
 }
 
-func (c *UserClaims) ConvertToPermissionDomain() model.UserPermissions {
-	return model.UserPermissions(c.Permissions)
+func (c *UserClaims) ConvertToAuthority() model.Authority {
+	return model.Authority(c.Permissions)
 }
 
-// func (c *UserClaims) HasPermission(permission model.Permission) bool {
-// 	return c.ConvertToPermissionDomain().HasPermission(permission)
-// }
+func (c *UserClaims) HasRole(role model.UserRoles) bool {
+	return model.Authority(c.Roles).HasSpecific(role)
+}
 
-func (c *UserClaims) HasAllPermissions(permissions ...model.Permission) bool {
-	return c.ConvertToPermissionDomain().HasAllPermissions(permissions...)
+func (c *UserClaims) HasAllPermissions(permissions ...model.Authority) bool {
+	return c.ConvertToAuthority().HasAll(permissions...)
 }

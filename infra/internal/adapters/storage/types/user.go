@@ -13,6 +13,7 @@ type User struct {
 	Phone            string        `gorm:"type:varchar(255);not null;unique"`
 	SubscriptionType uint          `gorm:"not null;default:0"`
 	Permissions      uint64        `gorm:"not null;default:1"`
+	Roles            uint64        `gorm:"not null;default:4096"`
 	Restaurants      []*Restaurant `gorm:"foreignKey:OwnerID"`
 }
 

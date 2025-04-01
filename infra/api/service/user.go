@@ -68,7 +68,7 @@ func (s *UserService) SignUp(ctx context.Context, req *pb.UserSignUpRequest, use
 		FirstName:   req.GetFirstName(),
 		LastName:    req.GetLastName(),
 		Phone:       model.Phone(req.GetPhone()),
-		Permissions: perm.ReadUser + perm.WriteUser,
+		Permissions: perm.Read + perm.Create + perm.Update + perm.Delete,
 	}
 
 	userId, err := s.svc.CreateUser(ctx, user)
@@ -78,7 +78,12 @@ func (s *UserService) SignUp(ctx context.Context, req *pb.UserSignUpRequest, use
 	}
 
 	s.notifSvc.DeleteUserNotifValue(ctx, model.Phone(req.GetPhone()))
-	return s.generateTokenResponse(&jwt.UserClaims{UserID: uint(userId), Phone: req.GetPhone(), IP: userIP, Permissions: uint64(user.Permissions)}, true)
+	return s.generateTokenResponse(&jwt.UserClaims{UserID: uint(userId),
+		Phone:       req.GetPhone(),
+		IP:          userIP,
+		Permissions: uint64(user.Permissions),
+		Roles:       uint64(perm.RestaurantOwner)},
+		true)
 
 }
 
@@ -101,7 +106,11 @@ func (s *UserService) Login(ctx context.Context, req *pb.UserLoginRequest, userI
 	}
 
 	s.notifSvc.DeleteUserNotifValue(ctx, model.Phone(req.GetPhone()))
-	return s.generateTokenResponse(&jwt.UserClaims{UserID: uint(user.ID), Phone: string(user.Phone), IP: userIP, Permissions: uint64(user.Permissions)}, true)
+	return s.generateTokenResponse(&jwt.UserClaims{UserID: uint(user.ID),
+		Phone:       string(user.Phone),
+		IP:          userIP,
+		Permissions: uint64(user.Permissions),
+		Roles:       uint64(user.Roles)}, true)
 
 }
 
@@ -174,6 +183,7 @@ func (s *UserService) RefreshToken(ctx context.Context, token string, userIP str
 	}
 
 	userClaims.Permissions = uint64(user.Permissions)
+	userClaims.Roles = uint64(user.Roles)
 	userClaims.Phone = string(user.Phone)
 
 	if time.Until(userClaims.ExpiresAt.Time)/time.Hour < 12 {
