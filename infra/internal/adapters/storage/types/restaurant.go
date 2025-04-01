@@ -11,7 +11,6 @@ type Subscription struct {
 	CreatedAt           time.Time `gorm:"not null;autoCreateTime"`
 	MaxBranchCount      uint      `gorm:"not null;default:1"`
 	ExpiresAt           time.Time `gorm:"not null"`
-	RestaurantID        uint      `gorm:"index;not null"`
 	SubscriptionPriceID uint
 	SubscriptionPrice   SubscriptionPrice `gorm:"foreignKey:SubscriptionPriceID"`
 }
@@ -25,9 +24,10 @@ type SubscriptionPrice struct {
 
 type Restaurant struct {
 	gorm.Model
-	Name         string       `gorm:"not null;type:varchar(255)"`
-	URL          string       `gorm:"uniqueIndex;type:varchar(255); not null;"`
-	OwnerID      uint         `gorm:"not null;"`
-	Branches     []*Branch    `gorm:"foreignKey:RestaurantID"`
-	Subscription Subscription `gorm:"constraint:OnDelete:CASCADE;"`
+	Name           string    `gorm:"not null;type:varchar(255)"`
+	URL            string    `gorm:"uniqueIndex;type:varchar(255); not null;"`
+	OwnerID        uint      `gorm:"not null;"`
+	Branches       []*Branch `gorm:"foreignKey:RestaurantID"`
+	SubscriptionID uint      `gorm:"constraint:OnDelete:CASCADE;unique;"`
+	Subscription   Subscription
 }

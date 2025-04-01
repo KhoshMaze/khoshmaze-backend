@@ -58,10 +58,10 @@ func (a *app) setDB(logLevel int) error {
 		&types.TokenBlacklist{},
 		&types.Outbox{},
 		&types.Notification{},
+		&types.SubscriptionPrice{},
+		&types.Subscription{},
 		&types.Restaurant{},
 		&types.Branch{},
-		&types.Subscription{},
-		&types.SubscriptionPrice{},
 	); err != nil {
 		return err
 	}
