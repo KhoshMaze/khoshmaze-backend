@@ -40,14 +40,14 @@ func (a *app) Config() config.Config {
 	return a.cfg
 }
 
-func (a *app) setDB() error {
+func (a *app) setDB(logLevel int) error {
 	db, err := postgres.NewPsqlGormConnection(postgres.DBConnOptions{
 		User:   a.cfg.DB.User,
 		Pass:   a.cfg.DB.Password,
 		Host:   a.cfg.DB.Host,
 		Port:   a.cfg.DB.Port,
 		DBName: a.cfg.DB.Database,
-	})
+	}, logLevel)
 
 	if err != nil {
 		return err
@@ -60,6 +60,8 @@ func (a *app) setDB() error {
 		&types.Notification{},
 		&types.Restaurant{},
 		&types.Branch{},
+		&types.Subscription{},
+		&types.SubscriptionPrice{},
 	); err != nil {
 		return err
 	}
@@ -123,8 +125,8 @@ func (a *app) restaurantServiceWithDB(db *gorm.DB) restaurantPort.Service {
 	return restaurant.NewService(storage.NewRestaurantRepo(db, a.redisProvider), storage.NewBranchRepo(db, a.redisProvider))
 }
 
-func MustNewApp(cfg config.Config) App {
-	app, err := newApp(cfg)
+func MustNewApp(cfg config.Config, logLevel int) App {
+	app, err := newApp(cfg, logLevel)
 
 	if err != nil {
 		panic(err)
@@ -133,12 +135,12 @@ func MustNewApp(cfg config.Config) App {
 	return app
 }
 
-func newApp(cfg config.Config) (App, error) {
+func newApp(cfg config.Config, logLevel int) (App, error) {
 	a := &app{
 		cfg: cfg,
 	}
 
-	if err := a.setDB(); err != nil {
+	if err := a.setDB(logLevel); err != nil {
 		return nil, err
 	}
 

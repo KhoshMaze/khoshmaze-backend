@@ -12,6 +12,7 @@ import (
 )
 
 var cfg = flag.String("config", "config.json", "server configuration file")
+var logLevel = flag.Int("log-level", 0, "enable debug mode")
 
 func main() {
 	flag.Parse()
@@ -22,7 +23,7 @@ func main() {
 
 	c := config.MustReadConfig(*cfg)
 
-	appContainer := app.MustNewApp(c)
+	appContainer := app.MustNewApp(c, *logLevel)
 
 	cron.SetTokenDeleterJob(appContainer.DB(), c.Jobs.TokenCheckerIntervalMinute)
 
