@@ -10,14 +10,6 @@ import (
 	restaurantModel "github.com/KhoshMaze/khoshmaze-backend/internal/domain/restaurant/model"
 )
 
-type Subscription uint
-
-const (
-	Normal Subscription = iota
-	Premium1
-	Premium2
-)
-
 type (
 	UserID uint
 	Phone  string
@@ -52,7 +44,6 @@ type User struct {
 	LastName         string
 	Phone            Phone
 	Permissions      model.Permission
-	SubscriptionType Subscription
 	Restaurants      []*restaurantModel.Restaurant
 }
 

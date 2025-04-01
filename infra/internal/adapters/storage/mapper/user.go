@@ -18,7 +18,6 @@ func UserDomainToStorage(userDomain model.User) *types.User {
 		FirstName:        userDomain.FirstName,
 		LastName:         userDomain.LastName,
 		Phone:            string(userDomain.Phone),
-		SubscriptionType: uint(userDomain.SubscriptionType),
 		Permissions:      uint64(userDomain.Permissions),
 		Restaurants:      make([]*types.Restaurant, 0),
 	}
@@ -38,7 +37,6 @@ func UserStorageToDomain(user types.User) *model.User {
 		FirstName:        user.FirstName,
 		LastName:         user.LastName,
 		Phone:            model.Phone(user.Phone),
-		SubscriptionType: IntegerToSubscriptionType(user.SubscriptionType),
 		Permissions:      permModel.Permission(user.Permissions),
 		Restaurants:      make([]*restaurantModel.Restaurant, 0),
 	}

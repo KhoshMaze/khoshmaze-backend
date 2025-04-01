@@ -73,3 +73,18 @@ func (r *restaurantRepo) GetAll(ctx context.Context, pagination *common.Paginati
 
 	return common.NewPaginatedResponse(restaurantsDomain, totalItems, pagination.Page, pagination.PageSize), nil
 }
+
+// func (r *restaurantRepo) getSubscriptionPrice(ctx context.Context, subType uint8) (*types.SubscriptionPrice, error) {
+// 	var subscriptionPrice types.SubscriptionPrice
+// 	err := r.db.Table("subscription_prices").
+// 		WithContext(ctx).
+// 		Where("type = ?", subType).
+// 		Order("created_at DESC").
+// 		First(&subscriptionPrice).Error
+
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	return &subscriptionPrice, nil
+// }

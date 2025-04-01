@@ -2,14 +2,37 @@ package model
 
 import (
 	"errors"
+	"time"
 )
 
+type SubscriptionType uint8
+
+const (
+	SubscriptionTypeNormal SubscriptionType = iota
+	SubscriptionTypePremium
+)
+
+type Subscription struct {
+	ID             uint
+	MaxBranchCount uint
+	CreatedAt      time.Time
+	ExpiresAt      time.Time
+	Price          SubscriptionPrice
+}
+
+type SubscriptionPrice struct {
+	ID    uint
+	Price uint
+	Type  SubscriptionType
+}
+
 type Restaurant struct {
-	ID       uint
-	Name     string
-	URL      string
-	OwnerID  uint
-	Branches []*Branch
+	ID           uint
+	Name         string
+	URL          string
+	OwnerID      uint
+	Branches     []*Branch
+	Subscription Subscription
 }
 
 type RestaurantFilter struct {
