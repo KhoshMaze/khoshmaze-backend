@@ -2,13 +2,12 @@ package context
 
 import (
 	"context"
-	"log/slog"
 
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/logger"
 	"gorm.io/gorm"
 )
 
-var defaultLogger *slog.Logger
+var defaultLogger *logger.CustomLogger
 
 func init() {
 	defaultLogger = logger.NewLogger()
@@ -18,7 +17,7 @@ type appContext struct {
 	context.Context
 	db           *gorm.DB
 	shouldCommit bool
-	logger       *slog.Logger
+	logger       *logger.CustomLogger
 }
 
 type AppContextOpt func(*appContext) *appContext // option pattern
@@ -31,7 +30,7 @@ func WithDB(db *gorm.DB, shouldCommit bool) AppContextOpt {
 	}
 }
 
-func WithLogger(logger *slog.Logger) AppContextOpt {
+func WithLogger(logger *logger.CustomLogger) AppContextOpt {
 	return func(ac *appContext) *appContext {
 		ac.logger = logger
 		return ac
@@ -103,13 +102,13 @@ func CommitOrRollback(ctx context.Context, shouldLog bool) error {
 	return commitErr
 }
 
-func SetLogger(ctx context.Context, logger *slog.Logger) {
+func SetLogger(ctx context.Context, logger *logger.CustomLogger) {
 	if appCtx, ok := ctx.(*appContext); ok {
 		appCtx.logger = logger
 	}
 }
 
-func GetLogger(ctx context.Context) *slog.Logger {
+func GetLogger(ctx context.Context) *logger.CustomLogger {
 	appCtx, ok := ctx.(*appContext)
 	if !ok || appCtx.logger == nil {
 		return defaultLogger

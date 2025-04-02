@@ -1,9 +1,10 @@
 package cron
 
 import (
-	"log"
+	"context"
 	"time"
 
+	appCtx "github.com/KhoshMaze/khoshmaze-backend/internal/adapters/context"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/storage/types"
 	timeutils "github.com/KhoshMaze/khoshmaze-backend/internal/adapters/time"
 	"github.com/go-co-op/gocron"
@@ -13,11 +14,13 @@ import (
 func SetTokenDeleterJob(db *gorm.DB, interval int) {
 	job := gocron.NewScheduler(timeutils.TehranLoc)
 	job.Every(interval).Hours().Do(func() {
-		log.Println("started cron job")
+		logger := appCtx.GetLogger(context.Background())
+		logger.Info("STARTING TOKEN DELETER CRON JOB")
 		err := db.Where("expires_at < ?", time.Now()).Delete(&types.TokenBlacklist{}).Error
 		if err != nil {
-			log.Fatal("TOKEN DELETER CRON JOB FAILED", err)
+			logger.Error("TOKEN DELETER CRON JOB FAILED", err)
 		}
+		logger.Info("TOKEN DELETER CRON JOB FINISHED")
 	})
 	job.StartAsync()
 }

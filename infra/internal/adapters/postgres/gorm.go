@@ -2,10 +2,13 @@ package postgres
 
 import (
 	"fmt"
+	"time"
 
+	LG "github.com/KhoshMaze/khoshmaze-backend/internal/adapters/logger"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	// "github.com/hertzcodes/gorm/logger"
 )
 
 type DBConnOptions struct {
@@ -23,6 +26,12 @@ func (o *DBConnOptions) PostgresDSN() string {
 
 func NewPsqlGormConnection(opt DBConnOptions, logLevel int) (*gorm.DB, error) {
 	return gorm.Open(postgres.Open(opt.PostgresDSN()), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.LogLevel(logLevel)),
+		Logger: logger.New(LG.NewLogger(), logger.Config{
+			SlowThreshold: 800 * time.Millisecond,
+			// IgnoreRecordNotFoundError: true,
+			ParameterizedQueries: true,
+			LogLevel:             logger.LogLevel(logLevel),
+			Colorful:             false,
+		}),
 	})
 }
