@@ -21,7 +21,7 @@ import (
 
 var (
 	ErrWrongOTP            = errors.New("wrong otp")
-	ErrWrongOTPType        = errors.New("wrong otp type. [0 for register & 1 for login]")
+	ErrOTPAlreadySent      = errors.New("otp already sent. wait 2 minutes before sending again")
 	ErrInvalidRefreshToken = errors.New("invalid refresh token")
 	ErrUserAlreadyExists   = errors.New("user already exists")
 	ErrUserOnCreate        = errors.New("couldn't create the user")
@@ -118,6 +118,10 @@ func (s *UserService) SendOTP(ctx context.Context, req *pb.OtpRequest) (string, 
 	var (
 		phone = req.GetPhone()
 	)
+
+	if notif, _ := s.notifSvc.GetUserNotif(ctx, model.Phone(phone)); notif != "" {
+		return "", ErrOTPAlreadySent
+	}
 	user, err := s.svc.GetUserByFilter(ctx, &model.UserFilter{
 		Phone: phone,
 	})

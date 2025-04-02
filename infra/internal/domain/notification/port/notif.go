@@ -12,5 +12,6 @@ type Service interface {
 	Send(ctx context.Context, notif *model.Notification) error
 	CheckUserNotifValue(ctx context.Context, phone userDomain.Phone, val string) (bool, error)
 	DeleteUserNotifValue(ctx context.Context, phone userDomain.Phone) error
+	GetUserNotif(ctx context.Context, phone userDomain.Phone) (string, error)
 	common.OutboxHandler[model.NotificationOutbox]
 }

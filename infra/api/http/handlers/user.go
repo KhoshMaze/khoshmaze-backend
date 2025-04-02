@@ -30,7 +30,7 @@ func SignUp(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 
 		resp, err := svc.SignUp(c.UserContext(), &req, c.IP())
 		if err != nil {
-			if errors.Is(err, service.ErrUserAlreadyExists) || errors.Is(err, service.ErrWrongOTP) {
+			if errors.Is(err, service.ErrUserAlreadyExists) {
 				return fiber.NewError(fiber.StatusConflict, err.Error())
 			}
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
@@ -80,8 +80,8 @@ func SendOTP(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 
 		return c.Status(fiber.StatusOK).JSON(
 			fiber.Map{
-				"message": "sent otp",
-				"status":  "ok",
+				"message":  "sent otp",
+				"status":   "ok",
 				"category": category,
 			},
 		)

@@ -110,3 +110,7 @@ func (s *service) CheckUserNotifValue(ctx context.Context, phone userDomain.Phon
 func (s *service) DeleteUserNotifValue(ctx context.Context, phone userDomain.Phone) error {
 	return s.repo.DeleteUserNotifValue(ctx, phone)
 }
+
+func (s *service) GetUserNotif(ctx context.Context, phone userDomain.Phone) (string, error) {
+	return s.repo.GetUserNotifValue(ctx, phone)
+}
