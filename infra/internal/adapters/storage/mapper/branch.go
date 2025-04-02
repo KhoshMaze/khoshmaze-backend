@@ -15,6 +15,7 @@ func BranchDomainToStorage(branchDomain *model.Branch) *types.Branch {
 		RestaurantID: uint(branchDomain.RestaurantID),
 		Address:      branchDomain.Address,
 		Phone:        branchDomain.Phone,
+		Menu: *MenuDomainToStorage(branchDomain.Menu),
 	}
 }
 
@@ -25,5 +26,6 @@ func BranchStorageToDomain(branchStorage *types.Branch) *model.Branch {
 		RestaurantID: branchStorage.RestaurantID,
 		Address:      branchStorage.Address,
 		Phone:        branchStorage.Phone,
+		Menu: *MenuStorageToDomain(branchStorage.Menu),
 	}
 }

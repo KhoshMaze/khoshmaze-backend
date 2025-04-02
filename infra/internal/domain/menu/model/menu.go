@@ -6,4 +6,5 @@ type Menu struct {
 	PrimaryColor string 
 	SecondaryColor string
 	Foods []Food
+	BranchID uint
 }

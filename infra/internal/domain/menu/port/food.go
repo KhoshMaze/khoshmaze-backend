@@ -9,9 +9,9 @@ import (
 
 type FoodRepository interface {
 	Create(ctx context.Context, food *model.Food) (uint, error)
-	GetAll(ctx context.Context, pagination *common.Pagination) ([]*common.PaginatedResponse[*model.Food], error)
+	GetAll(ctx context.Context, pagination *common.Pagination, menuID uint) (*common.PaginatedResponse[*model.Food], error)
 	GetByID(ctx context.Context, id uint) (*model.Food, error)
-	GetImagesByFoodID(ctx context.Context, foodID uint, pagination *common.Pagination) ([]*common.PaginatedResponse[*model.FoodImage], error)
+	GetImagesByFoodID(ctx context.Context, foodID uint, pagination *common.Pagination) (*common.PaginatedResponse[*model.FoodImage], error)
 	Update(ctx context.Context, food *model.Food) error
 	Delete(ctx context.Context, id uint) error
 	CreateImage(ctx context.Context, image *model.FoodImage) error

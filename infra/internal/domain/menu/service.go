@@ -19,10 +19,6 @@ func NewService(menuRepo port.MenuRepository, foodRepo port.FoodRepository) port
 		foodRepo: foodRepo}
 }
 
-func (s *service) CreateMenu(ctx context.Context, menu *model.Menu) error {
-	return s.menuRepo.Create(ctx, menu)
-}
-
 func (s *service) GetMenuByID(ctx context.Context, id uint) (*model.Menu, error) {
 	return s.menuRepo.GetByID(ctx, id)
 }
@@ -43,15 +39,15 @@ func (s *service) DeleteFoodFromMenu(ctx context.Context, foodID uint) error {
 	return s.foodRepo.Delete(ctx, foodID)
 }
 
-func (s *service) GetAllFoods(ctx context.Context, pagination *common.Pagination) ([]*common.PaginatedResponse[*model.Food], error) {
-	return s.foodRepo.GetAll(ctx, pagination)
+func (s *service) GetAllFoods(ctx context.Context, pagination *common.Pagination, menuID uint) (*common.PaginatedResponse[*model.Food], error) {
+	return s.foodRepo.GetAll(ctx, pagination, menuID)
 }
 
 func (s *service) GetFoodByID(ctx context.Context, id uint) (*model.Food, error) {
 	return s.foodRepo.GetByID(ctx, id)
 }
 
-func (s *service) GetImagesByFoodID(ctx context.Context, foodID uint, pagination *common.Pagination) ([]*common.PaginatedResponse[*model.FoodImage], error) {
+func (s *service) GetImagesByFoodID(ctx context.Context, foodID uint, pagination *common.Pagination) (*common.PaginatedResponse[*model.FoodImage], error) {
 	return s.foodRepo.GetImagesByFoodID(ctx, foodID, pagination)
 }
 

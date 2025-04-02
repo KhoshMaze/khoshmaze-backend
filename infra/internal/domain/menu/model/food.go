@@ -6,15 +6,13 @@ type Food struct {
 	Description string
 	Type        string
 	IsAvailable bool
-	MenuID      uint
-	Price       float64
+	Price       *float64
 	Images      []FoodImage
 }
 
 type FoodPrice struct {
 	ID uint
 	Price float64
-	FoodID uint
 }
 
 type FoodImage struct {

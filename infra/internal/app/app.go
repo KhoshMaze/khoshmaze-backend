@@ -62,6 +62,10 @@ func (a *app) setDB(logLevel int) error {
 		&types.Subscription{},
 		&types.Restaurant{},
 		&types.Branch{},
+		&types.Menu{},
+		&types.Food{},
+		&types.FoodImage{},
+		&types.FoodPrice{},
 	); err != nil {
 		return err
 	}

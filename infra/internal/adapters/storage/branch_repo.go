@@ -7,6 +7,7 @@ import (
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/cache"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/storage/mapper"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/storage/types"
+	mnuDomain "github.com/KhoshMaze/khoshmaze-backend/internal/domain/menu/model"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/restaurant/model"
 	"gorm.io/gorm"
 )
@@ -22,7 +23,18 @@ func NewBranchRepo(db *gorm.DB, cache cache.Provider) *branchRepo {
 
 func (r *branchRepo) Create(ctx context.Context, branchDomain model.Branch) (uint, error) {
 	branch := mapper.BranchDomainToStorage(&branchDomain)
-	return branch.ID, r.db.Table("branches").WithContext(ctx).Create(branch).Error
+
+	err := r.db.Table("branches").WithContext(ctx).Create(branch).Error
+
+	mnu := NewMenuRepo(r.db)
+	menu := &mnuDomain.Menu{
+		BranchID: branch.ID,
+	}
+
+	if err := mnu.create(ctx, menu); err != nil {
+		return 0, err
+	}
+	return branch.ID, err
 }
 
 func (r *branchRepo) GetByFilter(ctx context.Context, filter *model.BranchFilter) (*model.Branch, error) {
