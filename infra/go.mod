@@ -4,6 +4,8 @@ go 1.23.3
 
 toolchain go1.23.6
 
+replace gorm.io/gorm => github.com/hertzcodes/gorm v1.0.1
+
 require (
 	github.com/go-co-op/gocron v1.37.0
 	github.com/go-co-op/gocron/v2 v2.12.4
@@ -20,7 +22,7 @@ require (
 	google.golang.org/protobuf v1.36.5
 	gorm.io/datatypes v1.2.4
 	gorm.io/driver/postgres v1.5.11
-	gorm.io/gorm v1.25.12
+	gorm.io/gorm v1.25.11
 )
 
 require (

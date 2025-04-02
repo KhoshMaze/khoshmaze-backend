@@ -17,37 +17,37 @@ type LoggerConfig struct {
 	DevMode  bool   `json:"dev_mode"`
 }
 
-var loggerConfig *LoggerConfig
+var LoggerConfiguration *LoggerConfig
 
 func init() {
 	data, err := os.ReadFile("./logger-config.json")
 	if err != nil {
 		panic(err)
 	}
-	err = json.Unmarshal(data, &loggerConfig)
+	err = json.Unmarshal(data, &LoggerConfiguration)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func NewLogger() *CustomLogger {
-	if loggerConfig.DevMode {
+	if LoggerConfiguration.DevMode {
 		return &CustomLogger{
 			Logger: slog.New(slog.NewJSONHandler(os.Stdout, nil).WithAttrs([]slog.Attr{
 				slog.String("trace_id", uuid.NewString()),
 			})),
-			Level: loggerConfig.Level,
+			Level: LoggerConfiguration.Level,
 		}
 	}
 	return &CustomLogger{
 		Logger: slog.New(
 			slogbetterstack.Option{
-				Token:    loggerConfig.Token,
-				Endpoint: loggerConfig.Endpoint,
+				Token:    LoggerConfiguration.Token,
+				Endpoint: LoggerConfiguration.Endpoint,
 			}.NewBetterstackHandler().WithAttrs([]slog.Attr{
 				slog.String("trace_id", uuid.NewString()),
 			})),
-		Level: loggerConfig.Level,
+		Level: LoggerConfiguration.Level,
 	}
 }
 

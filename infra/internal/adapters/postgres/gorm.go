@@ -8,7 +8,6 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	// "github.com/hertzcodes/gorm/logger"
 )
 
 type DBConnOptions struct {
@@ -24,13 +23,13 @@ func (o *DBConnOptions) PostgresDSN() string {
 		o.Host, o.Port, o.User, o.Pass, o.DBName)
 }
 
-func NewPsqlGormConnection(opt DBConnOptions, logLevel int) (*gorm.DB, error) {
+func NewPsqlGormConnection(opt DBConnOptions) (*gorm.DB, error) {
 	return gorm.Open(postgres.Open(opt.PostgresDSN()), &gorm.Config{
 		Logger: logger.New(LG.NewLogger(), logger.Config{
 			SlowThreshold: 800 * time.Millisecond,
 			// IgnoreRecordNotFoundError: true,
 			ParameterizedQueries: true,
-			LogLevel:             logger.LogLevel(logLevel),
+			LogLevel:             logger.LogLevel(LG.LoggerConfiguration.Level),
 			Colorful:             false,
 		}),
 	})
