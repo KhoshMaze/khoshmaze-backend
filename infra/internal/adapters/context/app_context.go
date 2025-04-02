@@ -2,17 +2,16 @@ package context
 
 import (
 	"context"
-	"log"
 	"log/slog"
-	"os"
 
+	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/logger"
 	"gorm.io/gorm"
 )
 
 var defaultLogger *slog.Logger
 
 func init() {
-	defaultLogger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	defaultLogger = logger.NewLogger()
 }
 
 type appContext struct {
@@ -92,11 +91,13 @@ func CommitOrRollback(ctx context.Context, shouldLog bool) error {
 	}
 
 	if shouldLog {
-		log.Println("error on committing transaction, err :", commitErr.Error())
+		logger := GetLogger(ctx)
+		logger.Error("error on committing transaction", "err", commitErr.Error())
 	}
 
 	if err := Rollback(ctx); err != nil {
-		log.Println("error on rollback transaction, err :", err.Error())
+		logger := GetLogger(ctx)
+		logger.Error("error on rollback transaction", "err", err.Error())
 	}
 
 	return commitErr

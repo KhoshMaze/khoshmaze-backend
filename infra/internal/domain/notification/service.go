@@ -80,7 +80,9 @@ func (s *service) Handle(ctx context.Context, outboxes []model.NotificationOutbo
 
 	for _, outbox := range outboxes {
 		fmt.Printf("dest : %s, content : %s\n", outbox.Data.Dest, outbox.Data.Content)
-		go notification.SendSMS(&outbox.Data, &s.cfg)
+		if outbox.Data.Type == model.NotifTypeSMS {
+			go notification.SendSMS(&outbox.Data, &s.cfg)
+		}
 	}
 
 	if err := s.outboxRepo.UpdateBulkStatuses(ctx, common.OutboxStatusDone, outBoxIDs...); err != nil {
@@ -94,8 +96,8 @@ func (s *service) Interval() time.Duration {
 	return time.Second * 10
 }
 
-func (s *service) Query(ctx context.Context) ([]model.NotificationOutbox, error) {
-	return s.repo.QueryOutboxes(ctx, 100, common.OutboxStatusCreated)
+func (s *service) Query(ctx context.Context, amount uint, status common.OutboxStatus) ([]model.NotificationOutbox, error) {
+	return s.repo.QueryOutboxes(ctx, amount, status)
 }
 
 func (s *service) CheckUserNotifValue(ctx context.Context, phone userDomain.Phone, val string) (bool, error) {
@@ -113,4 +115,11 @@ func (s *service) DeleteUserNotifValue(ctx context.Context, phone userDomain.Pho
 
 func (s *service) GetUserNotif(ctx context.Context, phone userDomain.Phone) (string, error) {
 	return s.repo.GetUserNotifValue(ctx, phone)
+}
+
+func (s *service) Cleanup(ctx context.Context, status common.OutboxStatus, outboxes []model.NotificationOutbox) error {
+	outboxIDs := fp.Map(outboxes, func(o model.NotificationOutbox) common.OutboxID {
+		return o.OutboxID
+	})
+	return s.outboxRepo.DeleteBulk(ctx, status, outboxIDs...)
 }
