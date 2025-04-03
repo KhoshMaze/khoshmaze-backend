@@ -1,6 +1,8 @@
 package middlewares
 
 import (
+	"errors"
+
 	"github.com/KhoshMaze/khoshmaze-backend/api/utils"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/context"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/jwt"
@@ -10,7 +12,11 @@ import (
 	"gorm.io/gorm"
 )
 
-func AuthMiddleware(secret []byte) fiber.Handler {
+var (
+	ErrVerifyNewIP = errors.New("unauthorized ip, please verify it with otp (get otp with /api/v1/send-otp and then request to /api/v1/login)")
+)
+
+func AuthMiddleware(secret []byte, checkIp bool, aesSecret string) fiber.Handler {
 	return jwtware.New(jwtware.Config{
 		SigningKey: jwtware.SigningKey{Key: secret},
 		Claims:     &jwt.UserClaims{},
@@ -20,8 +26,13 @@ func AuthMiddleware(secret []byte) fiber.Handler {
 				return fiber.ErrUnauthorized
 			}
 
-			if userClaims.IP != ctx.IP() {
-				return fiber.ErrUnauthorized
+			unhashedIP, err := utils.DecryptString(userClaims.IP, []byte(aesSecret))
+			if err != nil {
+				return fiber.ErrInternalServerError
+			}
+			
+			if checkIp && userClaims.IP != unhashedIP {
+				return fiber.NewError(fiber.StatusUnauthorized, ErrVerifyNewIP.Error())
 			}
 			logger := context.GetLogger(ctx.UserContext())
 			context.SetLogger(ctx.UserContext(), logger.With("user_id", userClaims.UserID))

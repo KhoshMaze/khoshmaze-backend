@@ -3,7 +3,9 @@ package app
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/KhoshMaze/khoshmaze-backend/api/middlewares"
 	"github.com/KhoshMaze/khoshmaze-backend/config"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/cache"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/postgres"
@@ -24,12 +26,13 @@ import (
 )
 
 type app struct {
-	db                  *gorm.DB
-	cfg                 config.Config
-	userService         userPort.Service
-	notificationService notifPort.Service
-	redisProvider       cache.Provider
-	restaurantService   restaurantPort.Service
+	db                      *gorm.DB
+	cfg                     config.Config
+	userService             userPort.Service
+	notificationService     notifPort.Service
+	redisProvider           cache.Provider
+	restaurantService       restaurantPort.Service
+	anomalyDetectionService middlewares.GeoAnomalyService
 }
 
 func (a *app) DB() *gorm.DB {
@@ -90,6 +93,15 @@ func (a *app) UserService(ctx context.Context) userPort.Service {
 
 	return a.userServiceWithDB(db)
 
+}
+
+func (a *app) AnomalyDetectionService() *middlewares.GeoAnomalyService {
+	return middlewares.NewGeoAnomalyService(a.redisProvider,
+		time.Minute*a.cfg.AnomalyDetection.TTL,
+		a.cfg.AnomalyDetection.MaxSpeed,
+		a.cfg.AnomalyDetection.MaxDistance,
+		a.cfg.AnomalyDetection.DBPath,
+		a.db)
 }
 
 func (a *app) userServiceWithDB(db *gorm.DB) userPort.Service {

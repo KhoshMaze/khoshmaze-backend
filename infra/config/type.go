@@ -1,12 +1,15 @@
 package config
 
+import "time"
+
 type Config struct {
-	DB     DBConfig     `json:"database"`
-	Redis  RedisConfig  `json:"redis"`
-	Server ServerConfig `json:"server"`
-	Jobs   JobsConfig   `json:"jobs"`
-	SMS    SMSConfig    `json:"SMS"`
-	Extra  ExtraConfig  `json:"extra"`
+	DB               DBConfig               `json:"database"`
+	Redis            RedisConfig            `json:"redis"`
+	Server           ServerConfig           `json:"server"`
+	Jobs             JobsConfig             `json:"jobs"`
+	SMS              SMSConfig              `json:"SMS"`
+	Extra            ExtraConfig            `json:"extra"`
+	AnomalyDetection AnomalyDetectionConfig `json:"anomalyDetection"`
 }
 
 type DBConfig struct {
@@ -33,6 +36,13 @@ type ServerConfig struct {
 	AESSecret         string `json:"AESSecret"`
 	SSLCertPath       string `json:"cert"`
 	SSLKeyPath        string `json:"key"`
+}
+
+type AnomalyDetectionConfig struct {
+	TTL         time.Duration `json:"ttl"`
+	MaxSpeed    float64       `json:"maxSpeed"`
+	MaxDistance float64       `json:"maxDistance"`
+	DBPath      string        `json:"dbPath"`
 }
 
 type JobsConfig struct {

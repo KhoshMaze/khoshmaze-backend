@@ -32,18 +32,22 @@ func Run(appContainer app.App, cfg config.ServerConfig) error {
 		JSONEncoder: json.Marshal,
 		JSONDecoder: json.Unmarshal,
 	})
+	
 	router.Use(healthcheck.New())
 	router.Get("/docs/*", fiberSwagger.WrapHandler)
 	api := router.Group("/api/v1", middlewares.SetUserContext)
 	api.Get("/metrics", monitor.New())
-
+	
 	userSvcGetter := handlers.UserServiceGetter(appContainer, cfg)
 	restaurantSvcGetter := handlers.RestaurantServiceGetter(appContainer)
-	registerGlobalRoutes(appContainer, cfg, api, userSvcGetter)
-
+	registerGlobalRoutes(appContainer, api, userSvcGetter)
+	
 	// Authentication Required Endpoints
 	secret := []byte(cfg.AuthSecret)
-	router.Use(middlewares.AuthMiddleware(secret))
+	anomalyDetectionSvc := appContainer.AnomalyDetectionService()
+	api.Use(anomalyDetectionSvc.DetectAnomalyMiddleware([]byte(cfg.RefreshSecret)))
+	api.Post("/refresh", middlewares.RateLimiter("refreshToken", int((cfg.AuthExpMinute-1)*60), 1), handlers.RefreshToken(userSvcGetter))
+	api.Use(middlewares.AuthMiddleware(secret, false, cfg.AESSecret))
 
 	registerUserEndpoints(appContainer, api, userSvcGetter)
 	registerRestaurantEndpoints(appContainer, api, restaurantSvcGetter)
@@ -66,9 +70,8 @@ func registerRestaurantEndpoints(appContainer app.App, router fiber.Router, rest
 	router.Get("/", middlewares.Authorizer(perm.RestaurantOwner), handlers.GetRestaurants(restaurantSvcGetter))
 }
 
-func registerGlobalRoutes(appContainer app.App, cfg config.ServerConfig, router fiber.Router, userSvcGetter handlers.ServiceGetter[*service.UserService]) {
+func registerGlobalRoutes(appContainer app.App, router fiber.Router, userSvcGetter handlers.ServiceGetter[*service.UserService]) {
 	router.Post("/register", middlewares.SetTransaction(appContainer.DB()), handlers.SignUp(userSvcGetter))
 	router.Post("/login", handlers.Login(userSvcGetter))
 	router.Post("/send-otp", middlewares.RateLimiter("", 140, 1), handlers.SendOTP(userSvcGetter))
-	router.Post("/refresh", middlewares.RateLimiter("refreshToken", int((cfg.AuthExpMinute-1)*60), 1), handlers.RefreshToken(userSvcGetter))
 }
