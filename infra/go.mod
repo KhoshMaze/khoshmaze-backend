@@ -4,7 +4,7 @@ go 1.23.3
 
 toolchain go1.23.6
 
-replace gorm.io/gorm => github.com/hertzcodes/gorm v1.0.1
+replace gorm.io/gorm => github.com/hertzcodes/gorm v1.0.2
 
 require (
 	github.com/go-co-op/gocron v1.37.0

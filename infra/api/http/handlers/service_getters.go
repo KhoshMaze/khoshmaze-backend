@@ -13,7 +13,7 @@ type ServiceGetter[T any] func(context.Context) T
 func UserServiceGetter(appContainer app.App, cfgServer config.ServerConfig) ServiceGetter[*service.UserService] {
 	return func(ctx context.Context) *service.UserService {
 		return service.NewUserService(appContainer.UserService(ctx),
-			cfgServer.AuthSecret, cfgServer.RefreshSecret, cfgServer.AuthExpMinute, cfgServer.AuthRefreshMinute,appContainer.NotificationService(ctx))
+			cfgServer.AuthSecret, cfgServer.RefreshSecret, cfgServer.AESSecret, cfgServer.AuthExpMinute, cfgServer.AuthRefreshMinute, appContainer.NotificationService(ctx))
 	}
 }
 

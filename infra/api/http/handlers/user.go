@@ -168,7 +168,7 @@ func RefreshToken(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 
 		svc := svcGetter(c.UserContext())
 
-		resp, err := svc.RefreshToken(c.UserContext(), c.Cookies("refreshToken"), c.IP())
+		resp, err := svc.RefreshToken(c.UserContext(), c.Cookies("refreshToken"))
 
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())

@@ -33,16 +33,18 @@ type UserService struct {
 	notifSvc      notifPort.Service
 	authSecret    string
 	refreshSecret string
+	aesSecret     string
 	expMin        uint
 	refreshExpMin uint
 }
 
-func NewUserService(svc userPort.Service, authSecret, refreshSecret string, expMin, refreshExpMin uint, notifSvc notifPort.Service) *UserService {
+func NewUserService(svc userPort.Service, authSecret, refreshSecret, aesSecret string, expMin, refreshExpMin uint, notifSvc notifPort.Service) *UserService {
 	return &UserService{
 		svc:           svc,
 		notifSvc:      notifSvc,
 		authSecret:    authSecret,
 		refreshSecret: refreshSecret,
+		aesSecret:     aesSecret,
 		expMin:        expMin,
 		refreshExpMin: refreshExpMin,
 	}
@@ -163,16 +165,19 @@ func (s *UserService) Logout(ctx context.Context, token string) error {
 	return err
 }
 
-func (s *UserService) RefreshToken(ctx context.Context, token string, userIP string) (*pb.UserTokenResponse, error) {
+func (s *UserService) RefreshToken(ctx context.Context, token string) (*pb.UserTokenResponse, error) {
 	userClaims, err := utils.UserClaimsFromCookies(token, []byte(s.refreshSecret))
 
 	if err != nil {
 		return nil, err
 	}
 
-	if userClaims.IP != userIP {
-		return nil, ErrInvalidRefreshToken
+	unhashedIP, err := utils.DecryptString(userClaims.IP, []byte(s.aesSecret))
+	if err != nil {
+		return nil, err
 	}
+
+	userClaims.IP = unhashedIP
 
 	if ok := s.svc.IsBannedToken(ctx, token); ok {
 		return nil, ErrInvalidRefreshToken
@@ -217,6 +222,11 @@ func (s *UserService) createToken(claims *jwt.UserClaims, isRefresh bool) (strin
 		secret = s.refreshSecret
 		exp = s.refreshExpMin
 	}
+	encryptedIP, err := utils.EncryptString(claims.IP, []byte(s.aesSecret))
+	if err != nil {
+		return "", 0, err
+	}
+	claims.IP = encryptedIP
 	claims.ExpiresAt = jwt5.NewNumericDate(timeutils.AddMinutes(exp, true))
 	token, err := jwt.CreateToken([]byte(secret), claims)
 
@@ -228,7 +238,7 @@ func (s *UserService) createToken(claims *jwt.UserClaims, isRefresh bool) (strin
 }
 
 func (s *UserService) generateTokenResponse(claims *jwt.UserClaims, genRefresh bool) (*pb.UserTokenResponse, error) {
-
+	cp := *claims
 	access, accessMaxAge, err := s.createToken(claims, false)
 	if err != nil {
 		return nil, err
@@ -240,7 +250,7 @@ func (s *UserService) generateTokenResponse(claims *jwt.UserClaims, genRefresh b
 	)
 	if genRefresh {
 
-		refresh, refreshMaxAge, err = s.createToken(claims, true)
+		refresh, refreshMaxAge, err = s.createToken(&cp, true)
 
 		if err != nil {
 			return nil, err

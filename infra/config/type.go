@@ -30,6 +30,7 @@ type ServerConfig struct {
 	AuthRefreshMinute uint   `json:"authRefreshMin"`
 	AuthSecret        string `json:"authSecret"`
 	RefreshSecret     string `json:"refreshSecret"`
+	AESSecret         string `json:"AESSecret"`
 	SSLCertPath       string `json:"cert"`
 	SSLKeyPath        string `json:"key"`
 }
@@ -48,7 +49,7 @@ type SMSConfig struct {
 
 type SMSVerificationConfig struct {
 	URL        string `json:"url"`
-	TemplateID string    `json:"templateID"`
+	TemplateID string `json:"templateID"`
 	OtpExpMin  int    `json:"otpExpMin"`
 }
 

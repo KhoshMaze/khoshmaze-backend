@@ -87,6 +87,26 @@ func (c *CustomLogger) Error(msg string, args ...interface{}) {
 	}
 }
 
+const (
+	infoStr      = "%s\n[info] "
+	warnStr      = "%s\n[warn] "
+	errStr       = "%s\n[error] "
+	traceStr     = "%s\n[%.3fms] [rows:%v] %s"
+	traceWarnStr = "%s %s\n[%.3fms] [rows:%v] %s"
+	traceErrStr  = "%s %s\n[%.3fms] [rows:%v] %s"
+)
+
 func (c *CustomLogger) Printf(msg string, args ...interface{}) {
-	c.Warn("DATABASE GORM LOG", "msg", fmt.Sprintf("%v", args[1]), "elapsed_time", fmt.Sprintf("%.3fms", args[2]), "rows", fmt.Sprintf("%v", args[3]), "query", fmt.Sprintf("%v", args[4:]...))
+	switch msg {
+	case infoStr:
+		c.Info("GORM DATABASE LOG", "msg", fmt.Sprintf("%v", args[1]))
+	case warnStr:
+		c.Warn("GORM DATABASE LOG", "msg", fmt.Sprintf("%v", args[1]))
+	case errStr:
+		c.Error("GORM DATABASE LOG", "msg", fmt.Sprintf("%v", args[1]))
+	case traceStr:
+		c.Info("GORM DATABASE LOG", "msg", fmt.Sprintf("%v", args[1]), "elapsed_time", fmt.Sprintf("%.3fms", args[2]), "rows", fmt.Sprintf("%v", args[3]), "query", fmt.Sprintf("%v", args[4:]...))
+	case traceWarnStr:
+		c.Warn("GORM DATABASE LOG", "msg", fmt.Sprintf("%v", args[1]), "elapsed_time", fmt.Sprintf("%.3fms", args[2]), "rows", fmt.Sprintf("%v", args[3]), "query", fmt.Sprintf("%v", args[4:]...))
+	}
 }

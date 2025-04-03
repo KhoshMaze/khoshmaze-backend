@@ -56,3 +56,28 @@ func UserRoleToString(role model.UserRoles) string {
 		return "unknown"
 	}
 }
+
+func StringToUserRole(role string) model.UserRoles {
+	switch role {
+	case "founder":
+		return model.Founder
+	case "super_admin":
+		return model.SuperAdmin
+	case "accountant":
+		return model.Accountant
+	case "support":
+		return model.Support
+	case "restaurant_owner":
+		return model.RestaurantOwner
+	case "branch_manager":
+		return model.BranchManager
+	case "cashier":
+		return model.Cashier
+	case "waiter":
+		return model.Waiter
+	case "branch_accountant":
+		return model.BranchAccountant
+	default:
+		return 0
+	}
+}
