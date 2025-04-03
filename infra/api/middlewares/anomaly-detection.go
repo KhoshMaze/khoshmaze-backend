@@ -95,9 +95,14 @@ func (ga *GeoAnomalyService) storeLocation(ctx context.Context, userID uint, loc
 	if err != nil && err != redis.Nil {
 		return err
 	}
+	if len(history) > 0 {
+		loc2 := history[len(history)-1]
+		if loc.IP == loc2.IP {
+			return nil
+		}
+	}
 
 	history = append(history, loc)
-
 	err = oc.Set(ctx, fmt.Sprintf("geo.history.%d", userID), ga.ttl, history)
 
 	if err != nil {
