@@ -29,10 +29,10 @@ type ObjectCacher[T any] struct {
 	serializationType SerializationType
 }
 
-const KEY_PREFIX = "NAMAK-BACKEND"
+const KEY_PREFIX = "namak-infra"
 
 func createKey(k string) string {
-	return KEY_PREFIX + "." + k
+	return KEY_PREFIX + ":" + k
 }
 
 func NewObjectCacher[T any](p Provider, st SerializationType) *ObjectCacher[T] {

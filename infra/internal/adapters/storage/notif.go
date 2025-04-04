@@ -30,7 +30,7 @@ func NewNotificationRepo(db *gorm.DB, cacheProvider cache.Provider) port.Repo {
 func (r *notifRepo) Create(ctx context.Context, notif *model.Notification) (model.NotifID, error) {
 	oc := cache.NewObjectCacher[string](r.cacheProvider, cache.SerializationTypeJSON)
 	if notif.ForAuthorization {
-		if err := oc.Set(ctx, fmt.Sprintf("notif.%s", notif.Phone), notif.TTL, notif.Content); err != nil {
+		if err := oc.Set(ctx, fmt.Sprintf("notifs:%s", notif.Phone), notif.TTL, notif.Content); err != nil {
 			return 0, err
 		}
 
@@ -83,11 +83,11 @@ func (r *notifRepo) QueryOutboxes(ctx context.Context, limit uint, status common
 
 func (r *notifRepo) GetUserNotifValue(ctx context.Context, phone userDomain.Phone) (string, error) {
 	oc := cache.NewObjectCacher[string](r.cacheProvider, cache.SerializationTypeJSON)
-	v, err := oc.Get(ctx, fmt.Sprintf("notif.%s", phone))
+	v, err := oc.Get(ctx, fmt.Sprintf("notifs:%s", phone))
 	return v, err
 }
 
 func (r *notifRepo) DeleteUserNotifValue(ctx context.Context, phone userDomain.Phone) error {
 	oc := cache.NewObjectCacher[string](r.cacheProvider, cache.SerializationTypeJSON)
-	return oc.Del(ctx, fmt.Sprintf("notif.%s", phone))
+	return oc.Del(ctx, fmt.Sprintf("notifs:%s", phone))
 }

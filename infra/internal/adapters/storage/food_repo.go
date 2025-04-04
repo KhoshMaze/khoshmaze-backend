@@ -89,19 +89,18 @@ func (r *foodRepo) GetAll(ctx context.Context, pagination *common.Pagination, me
 func (r *foodRepo) GetByID(ctx context.Context, id uint) (*model.Food, error) {
 	var food types.Food
 
-	oc := cache.NewObjectCacher[*model.Food](r.cache, cache.SerializationTypeGob)
-
-	if food, err := oc.Get(ctx, fmt.Sprintf("foods.%d", id)); err == nil && food != nil {
-		return food, nil
+	oc := cache.NewObjectCacher[model.Food](r.cache, cache.SerializationTypeGob)
+	if food, err := oc.Get(ctx, fmt.Sprintf("foods:%d", id)); err == nil {
+		return &food, nil
 	}
 
 	if err := r.db.Table("foods").WithContext(ctx).Where("id = ?", id).First(&food).Error; err != nil {
-		return nil, err
+		return &model.Food{}, err
 	}
 
 	result := mapper.FoodStorageToDomain(food)
 
-	oc.Set(ctx, fmt.Sprintf("foods.%d", id), time.Minute*10, result)
+	oc.Set(ctx, fmt.Sprintf("foods:%d", id), time.Minute*10, *result)
 
 	return result, nil
 }

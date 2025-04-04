@@ -90,7 +90,7 @@ func (ga *GeoAnomalyService) isSpeedSuspicious(loc1, loc2 geoLocation) bool {
 func (ga *GeoAnomalyService) storeLocation(ctx context.Context, userID uint, loc geoLocation) error {
 	oc := cache.NewObjectCacher[[]geoLocation](ga.rdb, cache.SerializationTypeJSON)
 
-	history, err := oc.Get(ctx, fmt.Sprintf("geo.history.%d", userID))
+	history, err := oc.Get(ctx, fmt.Sprintf("geo:history:%d", userID))
 
 	if err != nil && err != redis.Nil {
 		return err
@@ -103,7 +103,7 @@ func (ga *GeoAnomalyService) storeLocation(ctx context.Context, userID uint, loc
 	}
 
 	history = append(history, loc)
-	err = oc.Set(ctx, fmt.Sprintf("geo.history.%d", userID), ga.ttl, history)
+	err = oc.Set(ctx, fmt.Sprintf("geo:history:%d", userID), ga.ttl, history)
 
 	if err != nil {
 		logger := appContext.GetLogger(ctx).With("user_id", userID)
@@ -118,7 +118,7 @@ func (ga *GeoAnomalyService) storeLocation(ctx context.Context, userID uint, loc
 func (ga *GeoAnomalyService) detectAnomaly(ctx context.Context, userID uint, currentLoc geoLocation) (bool, error) {
 
 	oc := cache.NewObjectCacher[[]geoLocation](ga.rdb, cache.SerializationTypeJSON)
-	history, err := oc.Get(ctx, fmt.Sprintf("geo.history.%d", userID))
+	history, err := oc.Get(ctx, fmt.Sprintf("geo:history:%d", userID))
 
 	if err != nil && err != redis.Nil {
 		return false, err
@@ -164,13 +164,13 @@ func (ga *GeoAnomalyService) DetectAnomalyMiddleware(jwtSecret []byte) fiber.Han
 
 			oc := cache.NewObjectCacher[int](ga.rdb, cache.SerializationTypeGob)
 
-			count, err := oc.Get(c.UserContext(), fmt.Sprintf("geo.history.%d.flags", userClaims.UserID))
+			count, err := oc.Get(c.UserContext(), fmt.Sprintf("geo:history:%d:flags", userClaims.UserID))
 
 			if err != nil && err != redis.Nil {
 				return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 			}
 
-			oc.Set(c.UserContext(), fmt.Sprintf("geo.history.%d.flags", userClaims.UserID), ga.ttl, count+1)
+			oc.Set(c.UserContext(), fmt.Sprintf("geo:history:%d:flags", userClaims.UserID), ga.ttl, count+1)
 
 			if count+1 >= 3 {
 
