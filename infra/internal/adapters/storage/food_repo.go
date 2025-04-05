@@ -41,13 +41,13 @@ func (r *foodRepo) Update(ctx context.Context, foodDomain model.Food) error {
 	if err := q.Updates(food).Error; err != nil {
 		return err
 	}
-	if f.Price == nil || food.Price == nil {
+	if f.Price == 0 || food.Price == 0 {
 		return nil
 	}
 	if f.Price != food.Price {
 		r.db.Table("food_prices").WithContext(ctx).Create(&types.FoodPrice{
 			FoodID: food.ID,
-			Price:  *food.Price,
+			Price:  food.Price,
 		})
 	}
 
@@ -62,6 +62,10 @@ func (r *foodRepo) GetAll(ctx context.Context, pagination *common.Pagination, me
 	var foods []types.Food
 
 	var totalItems int64
+	oc := cache.NewObjectCacher[*common.PaginatedResponse[*model.Food]](r.cache, cache.SerializationTypeGob)
+	if cached, err := oc.Get(ctx, fmt.Sprintf("menu:%d:foods:page:%d:size:%d", menuID, pagination.Page, pagination.PageSize)); cached != nil && err == nil {
+		return cached, nil
+	}
 
 	q := r.db.Table("foods").WithContext(ctx)
 
@@ -83,7 +87,11 @@ func (r *foodRepo) GetAll(ctx context.Context, pagination *common.Pagination, me
 		return mapper.FoodStorageToDomain(food)
 	})
 
-	return common.NewPaginatedResponse(foodsDomain, totalItems, pagination.Page, pagination.PageSize), nil
+	response := common.NewPaginatedResponse(foodsDomain, totalItems, pagination.Page, pagination.PageSize)
+
+	oc.Set(ctx, fmt.Sprintf("menu:%d:foods:page:%d:size:%d", menuID, pagination.Page, pagination.PageSize), time.Minute*30, response)
+
+	return response, nil
 }
 
 func (r *foodRepo) GetByID(ctx context.Context, id uint) (*model.Food, error) {

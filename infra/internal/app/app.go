@@ -20,8 +20,9 @@ import (
 	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/user"
 	userPort "github.com/KhoshMaze/khoshmaze-backend/internal/domain/user/port"
 	"github.com/go-co-op/gocron/v2"
+	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/menu"
 	"gorm.io/gorm"
-
+	menuPort "github.com/KhoshMaze/khoshmaze-backend/internal/domain/menu/port"
 	appCtx "github.com/KhoshMaze/khoshmaze-backend/internal/adapters/context"
 )
 
@@ -33,6 +34,7 @@ type app struct {
 	redisProvider           cache.Provider
 	restaurantService       restaurantPort.Service
 	anomalyDetectionService middlewares.GeoAnomalyService
+	menuService             menuPort.Service
 }
 
 func (a *app) DB() *gorm.DB {
@@ -93,6 +95,22 @@ func (a *app) UserService(ctx context.Context) userPort.Service {
 
 	return a.userServiceWithDB(db)
 
+}
+
+func (a *app) MenuService(ctx context.Context) menuPort.Service {
+	db := appCtx.GetDB(ctx)
+	if db == nil {
+		if a.menuService == nil {
+			a.menuService = a.menuServiceWithDB(a.db)
+		}
+		return a.menuService
+	}
+
+	return a.menuServiceWithDB(db)
+}
+
+func (a *app) menuServiceWithDB(db *gorm.DB) menuPort.Service {
+	return menu.NewService(storage.NewMenuRepo(db), storage.NewFoodRepo(db, a.redisProvider))
 }
 
 func (a *app) AnomalyDetectionService() *middlewares.GeoAnomalyService {

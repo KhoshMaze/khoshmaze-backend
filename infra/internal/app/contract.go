@@ -8,6 +8,7 @@ import (
 	notifPort "github.com/KhoshMaze/khoshmaze-backend/internal/domain/notification/port"
 	restaurantPort "github.com/KhoshMaze/khoshmaze-backend/internal/domain/restaurant/port"
 	userPort "github.com/KhoshMaze/khoshmaze-backend/internal/domain/user/port"
+	menuPort "github.com/KhoshMaze/khoshmaze-backend/internal/domain/menu/port"
 	"gorm.io/gorm"
 )
 
@@ -18,4 +19,5 @@ type App interface {
 	NotificationService(ctx context.Context) notifPort.Service
 	RestaurantService(ctx context.Context) restaurantPort.Service
 	AnomalyDetectionService() *middlewares.GeoAnomalyService
+	MenuService(ctx context.Context) menuPort.Service
 }

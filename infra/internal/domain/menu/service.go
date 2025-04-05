@@ -27,11 +27,11 @@ func (s *service) UpdateMenu(ctx context.Context, menu *model.Menu) error {
 	return s.menuRepo.Update(ctx, menu)
 }
 
-func (s *service) AddFoodToMenu(ctx context.Context, food *model.Food) (uint, error) {
+func (s *service) AddFoodToMenu(ctx context.Context, food model.Food) (uint, error) {
 	return s.foodRepo.Create(ctx, food)
 }
 
-func (s *service) UpdateFoodInMenu(ctx context.Context, food *model.Food) error {
+func (s *service) UpdateFoodInMenu(ctx context.Context, food model.Food) error {
 	return s.foodRepo.Update(ctx, food)
 }
 

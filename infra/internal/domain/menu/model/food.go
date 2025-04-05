@@ -6,7 +6,7 @@ type Food struct {
 	Description string
 	Type        string
 	IsAvailable bool
-	Price       *float64
+	Price       float64
 	Images      []FoodImage
 }
 

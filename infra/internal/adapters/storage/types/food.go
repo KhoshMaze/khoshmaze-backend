@@ -10,7 +10,7 @@ type Food struct {
 	Description string    `gorm:"type:text;"`
 	Type        string    `gorm:"type:varchar(255);not null"`
 	IsAvailable bool      `gorm:"boolean;not null;default:true"`
-	Price       *float64   
+	Price       float64   
 	FoodPrices  []FoodPrice
 	Images      []FoodImage
 	MenuID      uint      `gorm:"not null"`

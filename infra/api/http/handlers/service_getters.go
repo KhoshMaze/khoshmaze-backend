@@ -22,3 +22,9 @@ func RestaurantServiceGetter(appContainer app.App) ServiceGetter[*service.Restau
 		return service.NewRestaurantService(appContainer.RestaurantService(ctx))
 	}
 }
+
+func MenuServiceGetter(appContainer app.App) ServiceGetter[*service.MenuService] {
+	return func(ctx context.Context) *service.MenuService {
+		return service.NewMenuService(appContainer.MenuService(ctx))
+	}
+}
