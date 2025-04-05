@@ -71,7 +71,7 @@ func GetRestaurants(svcGetter ServiceGetter[*service.RestaurantService]) fiber.H
 
 		page := c.QueryInt("page")
 
-		pageSize := c.QueryInt("pageSize")
+		pageSize := c.QueryInt("pagesize")
 		restaurants, err := svc.GetAllRestaurants(c.Context(), page, pageSize)
 
 		if err != nil {

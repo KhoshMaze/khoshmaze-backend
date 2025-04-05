@@ -55,10 +55,10 @@ func (r *branchRepo) GetByFilter(ctx context.Context, filter *model.BranchFilter
 			WHERE r.url = ?
 		)
 		SELECT * FROM ranked_branches WHERE rn = ?
-	`, filter.RestaurantName, filter.ID)
+	`, filter.RestaurantName, filter.ID).Preload("Menu")
 
 	} else if filter.ID > 0 {
-		q.Where("id = ?", filter.ID)
+		q.Where("id = ?", filter.ID).Preload("Menu")
 	}
 
 	err := q.First(&branch).Error
@@ -66,6 +66,5 @@ func (r *branchRepo) GetByFilter(ctx context.Context, filter *model.BranchFilter
 	if err != nil || errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
-
 	return mapper.BranchStorageToDomain(&branch), nil
 }

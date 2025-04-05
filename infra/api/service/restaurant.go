@@ -41,6 +41,11 @@ func (s *RestaurantService) GetBranch(ctx context.Context, restaurant string, id
 		Address:    branch.Address,
 		Phone:      branch.Phone,
 		Restaurant: restaurant,
+		Menu: &pb.Menu{
+			Id:             int64(branch.Menu.ID),
+			PrimaryColor:   branch.Menu.PrimaryColor,
+			SecondaryColor: branch.Menu.SecondaryColor,
+		},
 	}, nil
 }
 
