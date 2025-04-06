@@ -7,16 +7,21 @@ type Food struct {
 	Type        string
 	IsAvailable bool
 	Price       float64
+	MenuID      uint
 	Images      []FoodImage
 }
 
 type FoodPrice struct {
-	ID uint
+	ID    uint
 	Price float64
 }
 
 type FoodImage struct {
-	ID uint 
-	Image []byte 
+	ID     uint
+	Image  []byte
 	FoodID uint
+}
+
+func (f *Food) Validate() error {
+	return nil
 }

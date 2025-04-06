@@ -34,11 +34,11 @@ var (
 	refreshSecret       []byte
 	aesSecret           string
 
-	authenticator  = middlewares.AuthMiddleware
-	authorizer     = middlewares.Authorizer
-	setTransaction = middlewares.SetTransaction
-	setContext     = middlewares.SetUserContext
-	rateLimiter    = middlewares.RateLimiter
+	authenticator   = middlewares.AuthMiddleware
+	authorizer      = middlewares.Authorizer
+	setTransaction  = middlewares.SetTransaction
+	setContext      = middlewares.SetUserContext
+	rateLimiter     = middlewares.RateLimiter
 	resourceControl = middlewares.ResourceControl
 )
 
@@ -91,6 +91,7 @@ func registerProtectedRoutes(appContainer app.App, router fiber.Router) {
 
 	registerUserEndpoints(appContainer, router)
 	registerRestaurantEndpoints(appContainer, router)
+	registerFoodEndpoints(appContainer, router)
 }
 
 func registerUserEndpoints(appContainer app.App, router fiber.Router) {
@@ -103,4 +104,15 @@ func registerRestaurantEndpoints(appContainer app.App, router fiber.Router) {
 	router = router.Group("/restaurants")
 	router.Post("/", setTransaction(appContainer.DB()), handlers.CreateRestaurant(restaurantSvcGetter))
 	router.Get("/", authorizer(model.Founder), handlers.GetRestaurants(restaurantSvcGetter))
+}
+
+func registerFoodEndpoints(appContainer app.App, router fiber.Router) {
+	router = router.Group("/branch/:branchID<int>")
+	// add resource controller middleware
+	// router.Use()
+
+	router.Get("/food/:foodID<int>", handlers.GetFood(menuSvcGetter))
+	router.Post("/food", setTransaction(appContainer.DB()), handlers.CreateFood(menuSvcGetter))
+	router.Put("/food", setTransaction(appContainer.DB()), handlers.UpdateFood(menuSvcGetter))
+	router.Delete("/food/:foodID<int>", handlers.DeleteFood(menuSvcGetter))
 }

@@ -32,6 +32,14 @@ message GetAllFoodsResponse {
     Extra extra = 3 [json_name = "extra"];
 }
 
+message CreateFoodRequest {
+    int64 menuID = 1 [json_name = "menuID"];
+    string name = 2 [json_name = "name"];
+    string description = 3 [json_name = "description"];
+    string type = 4 [json_name = "type"];
+    double price = 6 [json_name = "price"];
+}
+
 message Menu {
     int64 id = 1 [json_name = "id"];
     string primaryColor = 2 [json_name = "primaryColor"];
