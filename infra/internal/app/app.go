@@ -119,7 +119,7 @@ func (a *app) AnomalyDetectionService() *middlewares.GeoAnomalyService {
 		a.cfg.AnomalyDetection.MaxSpeed,
 		a.cfg.AnomalyDetection.MaxDistance,
 		a.cfg.AnomalyDetection.DBPath,
-		a.db)
+		a.userServiceWithDB(a.db))
 }
 
 func (a *app) userServiceWithDB(db *gorm.DB) userPort.Service {

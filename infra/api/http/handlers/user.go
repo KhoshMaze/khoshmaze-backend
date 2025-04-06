@@ -191,20 +191,3 @@ func RefreshToken(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 
 	}
 }
-
-// Test is a simple handler for testing purposes.
-// @Summary Test endpoint
-// @Description A simple test endpoint
-// @Tags test
-// @Produce json
-// @Success 200 {object} map[string]string
-// @Router /test [get]
-func Test() fiber.Handler {
-	return func(ctx *fiber.Ctx) error {
-		logger := context.GetLogger(ctx.UserContext())
-		logger.Info("test")
-		return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
-			"test": "ok",
-		})
-	}
-}

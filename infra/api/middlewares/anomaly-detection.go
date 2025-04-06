@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"github.com/oschwald/geoip2-golang"
-	"gorm.io/gorm"
 
 	"github.com/KhoshMaze/khoshmaze-backend/api/utils"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/cache"
 	appContext "github.com/KhoshMaze/khoshmaze-backend/internal/adapters/context"
+	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/user/model"
+	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/user/port"
 	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
 )
@@ -23,8 +24,6 @@ type geoLocation struct {
 	IP        string
 	Latitude  float64
 	Longitude float64
-	Country   string
-	City      string
 	Timestamp time.Time
 }
 
@@ -34,17 +33,17 @@ type GeoAnomalyService struct {
 	maxSpeed    float64       // KM/H
 	maxDistance float64       // KM
 	dbPath      string
-	sqlDB       *gorm.DB
+	userSvc     port.Service
 }
 
-func NewGeoAnomalyService(rdb cache.Provider, ttl time.Duration, maxSpeed float64, maxDistance float64, dbPath string, sqlDB *gorm.DB) *GeoAnomalyService {
+func NewGeoAnomalyService(rdb cache.Provider, ttl time.Duration, maxSpeed float64, maxDistance float64, dbPath string, userSvc port.Service) *GeoAnomalyService {
 	return &GeoAnomalyService{
 		rdb:         rdb,
 		ttl:         ttl,
 		maxSpeed:    maxSpeed,
 		maxDistance: maxDistance,
 		dbPath:      dbPath,
-		sqlDB:       sqlDB,
+		userSvc:     userSvc,
 	}
 }
 
@@ -149,48 +148,49 @@ func (ga *GeoAnomalyService) DetectAnomalyMiddleware(jwtSecret []byte) fiber.Han
 		}
 
 		ip := c.IP()
-
+		ctx := c.UserContext()
 		location, err := ga.getLocationInfo(ip)
 
-		logger := appContext.GetLogger(c.UserContext()).With("ip", ip)
-		appContext.SetLogger(c.UserContext(), logger)
+		logger := appContext.GetLogger(ctx).With("ip", ip)
+		appContext.SetLogger(ctx, logger)
 		if err != nil {
 			return fiber.NewError(fiber.StatusUnauthorized, err.Error())
 		}
 
-		isSuspicious, err := ga.detectAnomaly(c.UserContext(), userClaims.UserID, *location)
+		isSuspicious, err := ga.detectAnomaly(ctx, userClaims.UserID, *location)
 
 		if isSuspicious {
 
 			oc := cache.NewObjectCacher[int](ga.rdb, cache.SerializationTypeGob)
 
-			count, err := oc.Get(c.UserContext(), fmt.Sprintf("geo:history:%d:flags", userClaims.UserID))
+			count, err := oc.Get(ctx, fmt.Sprintf("geo:history:%d:flags", userClaims.UserID))
 
 			if err != nil && err != redis.Nil {
 				return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 			}
 
-			oc.Set(c.UserContext(), fmt.Sprintf("geo:history:%d:flags", userClaims.UserID), ga.ttl, count+1)
+			oc.Set(ctx, fmt.Sprintf("geo:history:%d:flags", userClaims.UserID), ga.ttl, count+1)
 
 			if count+1 >= 3 {
 
-				ga.sqlDB.Exec("INSERT INTO token_blacklists (expires_at, value, user_id) VALUES (?,?,?)",
-					userClaims.ExpiresAt.Time,
-					token,
-					userClaims.UserID)
+				ga.userSvc.CreateBannedToken(ctx, model.TokenBlacklist{
+					ExpiresAt: userClaims.ExpiresAt.Time,
+					Value:     token,
+					UserID:    model.UserID(userClaims.UserID),
+				})
+				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+					"error": "Suspicious activity detected",
+				})
 			}
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Suspicious activity detected",
-			})
-		}
 
-		if err := ga.storeLocation(c.UserContext(), userClaims.UserID, *location); err != nil {
-			return c.Next()
-		}
+			if err := ga.storeLocation(ctx, userClaims.UserID, *location); err != nil {
+				return c.Next()
+			}
 
+		}
+		
 		return c.Next()
 	}
-
 }
 
 func (ga *GeoAnomalyService) getLocationInfo(ip string) (*geoLocation, error) {
@@ -210,8 +210,6 @@ func (ga *GeoAnomalyService) getLocationInfo(ip string) (*geoLocation, error) {
 		IP:        ip,
 		Latitude:  record.Location.Latitude,
 		Longitude: record.Location.Longitude,
-		Country:   record.Country.Names["en"],
-		City:      record.City.Names["en"],
 		Timestamp: time.Now(),
 	}, nil
 
