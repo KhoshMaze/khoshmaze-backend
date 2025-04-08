@@ -46,3 +46,7 @@ func (r *redisCacheAdapter) Get(ctx context.Context, key string) ([]byte, error)
 func (r *redisCacheAdapter) Del(ctx context.Context, key string) error {
 	return r.client.Del(ctx, key).Err()
 }
+
+func (r *redisCacheAdapter) Exists(ctx context.Context, key string) (bool, error) {
+	return r.client.Exists(ctx, key).Val() == 1, nil
+}

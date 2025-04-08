@@ -109,7 +109,7 @@ func (r *foodRepo) GetByID(ctx context.Context, id uint) (*model.Food, error) {
 	}
 
 	if err := r.db.Table("foods").WithContext(ctx).Where("id = ?", id).First(&food).Error; err != nil {
-		return &model.Food{}, err
+		return nil, err
 	}
 
 	result := mapper.FoodStorageToDomain(food)

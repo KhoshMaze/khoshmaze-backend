@@ -45,6 +45,10 @@ func (a *app) Config() config.Config {
 	return a.cfg
 }
 
+func (a *app) Cache() cache.Provider {
+	return a.redisProvider
+}
+
 func (a *app) setDB() error {
 	db, err := postgres.NewPsqlGormConnection(postgres.DBConnOptions{
 		User:   a.cfg.DB.User,

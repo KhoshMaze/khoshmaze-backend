@@ -14,6 +14,7 @@ type Provider interface {
 	Set(ctx context.Context, key string, ttl time.Duration, data []byte) error
 	Get(ctx context.Context, key string) ([]byte, error)
 	Del(ctx context.Context, key string) error
+	Exists(ctx context.Context, key string) (bool, error)
 }
 
 type SerializationType uint8
@@ -70,4 +71,8 @@ func (c *ObjectCacher[T]) Set(ctx context.Context, key string, ttl time.Duration
 	}
 
 	return c.provider.Set(ctx, createKey(key), ttl, data)
+}
+
+func (c *ObjectCacher[T]) Exists(ctx context.Context, key string) (bool, error) {
+	return c.provider.Exists(ctx, createKey(key))
 }
