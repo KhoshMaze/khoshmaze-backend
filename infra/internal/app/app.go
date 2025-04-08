@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/KhoshMaze/khoshmaze-backend/api/middlewares"
@@ -10,7 +9,6 @@ import (
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/cache"
 	appCtx "github.com/KhoshMaze/khoshmaze-backend/internal/adapters/context"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/postgres"
-	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/redis"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/storage"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/storage/types"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/common"
@@ -31,7 +29,7 @@ type app struct {
 	cfg                     config.Config
 	userService             userPort.Service
 	notificationService     notifPort.Service
-	redisProvider           cache.Provider
+	cacheProvider           cache.Provider
 	restaurantService       restaurantPort.Service
 	anomalyDetectionService middlewares.GeoAnomalyService
 	menuService             menuPort.Service
@@ -46,7 +44,7 @@ func (a *app) Config() config.Config {
 }
 
 func (a *app) Cache() cache.Provider {
-	return a.redisProvider
+	return a.cacheProvider
 }
 
 func (a *app) setDB() error {
@@ -83,7 +81,7 @@ func (a *app) setDB() error {
 }
 
 func (a *app) setRedis() {
-	a.redisProvider = redis.NewRedisProvider(fmt.Sprintf("%s:%d", a.cfg.Redis.Host, a.cfg.Redis.Port), a.cfg.Redis.Password, 0, "khoshmaze-cache")
+	a.cacheProvider = cache.NewFallbackCache(&a.cfg.Cache.Redis, &a.cfg.Cache.MemoryCache)
 }
 
 func (a *app) UserService(ctx context.Context) userPort.Service {
@@ -113,11 +111,11 @@ func (a *app) MenuService(ctx context.Context) menuPort.Service {
 }
 
 func (a *app) menuServiceWithDB(db *gorm.DB) menuPort.Service {
-	return menu.NewService(storage.NewFoodRepo(db, a.redisProvider))
+	return menu.NewService(storage.NewFoodRepo(db, a.cacheProvider))
 }
 
 func (a *app) AnomalyDetectionService() *middlewares.GeoAnomalyService {
-	return middlewares.NewGeoAnomalyService(a.redisProvider,
+	return middlewares.NewGeoAnomalyService(a.cacheProvider,
 		time.Minute*a.cfg.AnomalyDetection.TTL,
 		a.cfg.AnomalyDetection.MaxSpeed,
 		a.cfg.AnomalyDetection.MaxDistance,
@@ -126,12 +124,12 @@ func (a *app) AnomalyDetectionService() *middlewares.GeoAnomalyService {
 }
 
 func (a *app) userServiceWithDB(db *gorm.DB) userPort.Service {
-	return user.NewService(storage.NewUserRepo(db, a.redisProvider))
+	return user.NewService(storage.NewUserRepo(db, a.cacheProvider))
 }
 
 func (a *app) notifServiceWithDB(db *gorm.DB) notifPort.Service {
-	return notification.NewService(storage.NewNotificationRepo(db, a.redisProvider),
-		user.NewService(storage.NewUserRepo(db, a.redisProvider)), storage.NewOutboxRepo(db), a.cfg.SMS)
+	return notification.NewService(storage.NewNotificationRepo(db, a.cacheProvider),
+		user.NewService(storage.NewUserRepo(db, a.cacheProvider)), storage.NewOutboxRepo(db), a.cfg.SMS)
 }
 
 func (a *app) NotificationService(ctx context.Context) notifPort.Service {
@@ -159,7 +157,7 @@ func (a *app) RestaurantService(ctx context.Context) restaurantPort.Service {
 }
 
 func (a *app) restaurantServiceWithDB(db *gorm.DB) restaurantPort.Service {
-	return restaurant.NewService(storage.NewRestaurantRepo(db, a.redisProvider), storage.NewBranchRepo(db, a.redisProvider))
+	return restaurant.NewService(storage.NewRestaurantRepo(db, a.cacheProvider), storage.NewBranchRepo(db, a.cacheProvider))
 }
 
 func MustNewApp(cfg config.Config) App {

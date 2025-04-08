@@ -14,6 +14,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
+	github.com/hashicorp/golang-lru v1.0.2
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/redis/go-redis/v9 v9.7.1
 	github.com/samber/slog-betterstack v1.4.2

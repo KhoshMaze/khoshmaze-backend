@@ -4,7 +4,7 @@ import "time"
 
 type Config struct {
 	DB               DBConfig               `json:"database"`
-	Redis            RedisConfig            `json:"redis"`
+	Cache            CacheConfig            `json:"cache"`
 	Server           ServerConfig           `json:"server"`
 	Jobs             JobsConfig             `json:"jobs"`
 	SMS              SMSConfig              `json:"SMS"`
@@ -20,10 +20,22 @@ type DBConfig struct {
 	Password string `json:"password"`
 }
 
+type CacheConfig struct {
+	Redis            RedisConfig            `json:"redis"`
+	MemoryCache      MemoryCacheConfig      `json:"memoryCache"`
+}
+
 type RedisConfig struct {
 	Host     string `json:"host"`
 	Port     uint   `json:"port"`
 	Password string `json:"password"`
+	DB       int    `json:"db"`
+	ClientName string `json:"clientName"`
+}
+
+type MemoryCacheConfig struct {
+	Size int `json:"size"`
+	HealthCheckInterval time.Duration `json:"healthCheckInterval"`
 }
 
 type ServerConfig struct {

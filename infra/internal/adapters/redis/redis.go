@@ -5,16 +5,21 @@ import (
 	"errors"
 	"time"
 
-	c "github.com/KhoshMaze/khoshmaze-backend/internal/adapters/cache"
 
 	"github.com/redis/go-redis/v9"
+)
+
+var (
+	ErrCacheMiss = errors.New("redis cache miss")
+	ErrCacheFull = errors.New("redis cache full")
+	ErrCacheSet  = errors.New("redis cache set error")
 )
 
 type redisCacheAdapter struct {
 	client *redis.Client
 }
 
-func NewRedisProvider(redisAddr string, pass string, db int, clientName string) c.Provider {
+func NewRedisProvider(redisAddr string, pass string, db int, clientName string) *redisCacheAdapter {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:       redisAddr,
 		Password:   pass,
@@ -35,7 +40,7 @@ func (r *redisCacheAdapter) Get(ctx context.Context, key string) ([]byte, error)
 	data, err := r.client.Get(ctx, key).Bytes()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			return nil, c.ErrCacheMiss
+			return nil, ErrCacheMiss
 		}
 		return nil, err
 	}
@@ -49,4 +54,8 @@ func (r *redisCacheAdapter) Del(ctx context.Context, key string) error {
 
 func (r *redisCacheAdapter) Exists(ctx context.Context, key string) (bool, error) {
 	return r.client.Exists(ctx, key).Val() == 1, nil
+}
+
+func (r *redisCacheAdapter) Purge(ctx context.Context){
+	r.client.FlushDB(ctx)
 }
