@@ -7,7 +7,7 @@ type Food struct {
 	Type        string
 	IsAvailable bool
 	Price       float64
-	MenuID      uint
+	BranchID    uint
 	Images      []FoodImage
 }
 

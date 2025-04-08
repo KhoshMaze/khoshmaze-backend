@@ -2,11 +2,11 @@ syntax = "proto3";
 
 option go_package = "github.com/KhoshMaze/khoshmaze-backend/api/pb";
 
-package pb.menu;
+package pb.food;
 
 import "common.proto";
 message GetAllFoodsRequest {
-    int64 menuID = 1 [json_name = "menuID"];
+    int64 branchID = 1 [json_name = "branchID"];
     int32 page = 2 [json_name = "page"];
     int32 pageSize = 3 [json_name = "pageSize"];
 }
@@ -23,9 +23,7 @@ message Food {
 
 message GetAllFoodsResponse {
     message Extra {
-        int64 menuID = 1 [json_name = "menuID"];
         int64 branchID = 2 [json_name = "branchID"];
-        int64 restaurantID = 3 [json_name = "restaurantID"];
     }
     repeated Food foods = 1 [json_name = "foods"];
     common.Pagination paginationInfo = 2 [json_name = "paginationInfo"];
@@ -33,15 +31,9 @@ message GetAllFoodsResponse {
 }
 
 message CreateFoodRequest {
-    int64 menuID = 1 [json_name = "menuID"];
+    int64 branchID = 1 [json_name = "branchID"];
     string name = 2 [json_name = "name"];
     string description = 3 [json_name = "description"];
     string type = 4 [json_name = "type"];
     double price = 6 [json_name = "price"];
-}
-
-message Menu {
-    int64 id = 1 [json_name = "id"];
-    string primaryColor = 2 [json_name = "primaryColor"];
-    string secondaryColor = 3 [json_name = "secondaryColor"];
 }

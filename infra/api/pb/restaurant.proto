@@ -5,7 +5,6 @@ option go_package = "github.com/KhoshMaze/khoshmaze-backend/api/pb";
 package pb.restaurant;
 
 import "common.proto";
-import "menu.proto";
 
 message Restaurant {
     int64 id = 1 [json_name = "id"];
@@ -25,13 +24,13 @@ message CreateBranchRequest {
     string phone = 3 [json_name = "phone"];
 }
 
-message GetBranchResponse {
+message Branch {
     int64 id = 1 [json_name = "id"];
     string address = 2 [json_name = "address"];
     string phone = 3 [json_name = "phone"];
     string restaurant = 4 [json_name = "restaurant"];
-    menu.Menu menu = 5 [json_name = "menu"];
-
+    string primaryColor = 5 [json_name = "primaryColor"];
+    string secondaryColor = 6 [json_name = "secondaryColor"];
 }
 
 message GetAllRestaurantsResponse {

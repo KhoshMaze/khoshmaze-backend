@@ -7,7 +7,6 @@ import (
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/cache"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/storage/mapper"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/storage/types"
-	mnuDomain "github.com/KhoshMaze/khoshmaze-backend/internal/domain/menu/model"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/restaurant/model"
 	"gorm.io/gorm"
 )
@@ -25,15 +24,6 @@ func (r *branchRepo) Create(ctx context.Context, branchDomain model.Branch) (uin
 	branch := mapper.BranchDomainToStorage(&branchDomain)
 
 	err := r.db.Table("branches").WithContext(ctx).Create(branch).Error
-
-	mnu := NewMenuRepo(r.db)
-	menu := &mnuDomain.Menu{
-		BranchID: branch.ID,
-	}
-
-	if err := mnu.create(ctx, menu); err != nil {
-		return 0, err
-	}
 	return branch.ID, err
 }
 
@@ -55,10 +45,10 @@ func (r *branchRepo) GetByFilter(ctx context.Context, filter *model.BranchFilter
 			WHERE r.url = ?
 		)
 		SELECT * FROM ranked_branches WHERE rn = ?
-	`, filter.RestaurantName, filter.ID).Preload("Menu")
+	`, filter.RestaurantName, filter.ID)
 
 	} else if filter.ID > 0 {
-		q.Where("id = ?", filter.ID).Preload("Menu")
+		q.Where("id = ?", filter.ID)
 	}
 
 	err := q.First(&branch).Error

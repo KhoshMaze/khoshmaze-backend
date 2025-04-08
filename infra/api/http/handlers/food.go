@@ -10,7 +10,7 @@ func GetFoods(svcGetter ServiceGetter[*service.MenuService]) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		svc := svcGetter(c.UserContext())
 
-		menuID, err := c.ParamsInt("menuID")
+		branchID, err := c.ParamsInt("branchID")
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": err.Error(),
@@ -19,7 +19,7 @@ func GetFoods(svcGetter ServiceGetter[*service.MenuService]) fiber.Handler {
 		page := c.QueryInt("page")
 		pageSize := c.QueryInt("size")
 
-		foods, err := svc.GetFoods(c.UserContext(), uint(menuID), page, pageSize)
+		foods, err := svc.GetFoods(c.UserContext(), uint(branchID), page, pageSize)
 		return c.Status(fiber.StatusOK).JSON(foods)
 	}
 }

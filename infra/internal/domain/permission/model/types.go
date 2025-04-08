@@ -12,7 +12,7 @@ const (
 	Support    UserRoles = 1 << 27
 	Accountant UserRoles = 1 << 28
 	SuperAdmin UserRoles = 1 << 30
-	Founder    UserRoles = 1 << 63
+	Founder    UserRoles = 1 << 62
 )
 
 // ------------------------------------------------------------

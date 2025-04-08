@@ -8,11 +8,14 @@ import (
 	"github.com/KhoshMaze/khoshmaze-backend/api/middlewares"
 	"github.com/KhoshMaze/khoshmaze-backend/config"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/cache"
+	appCtx "github.com/KhoshMaze/khoshmaze-backend/internal/adapters/context"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/postgres"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/redis"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/storage"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/adapters/storage/types"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/common"
+	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/menu"
+	menuPort "github.com/KhoshMaze/khoshmaze-backend/internal/domain/menu/port"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/notification"
 	notifPort "github.com/KhoshMaze/khoshmaze-backend/internal/domain/notification/port"
 	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/restaurant"
@@ -20,10 +23,7 @@ import (
 	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/user"
 	userPort "github.com/KhoshMaze/khoshmaze-backend/internal/domain/user/port"
 	"github.com/go-co-op/gocron/v2"
-	"github.com/KhoshMaze/khoshmaze-backend/internal/domain/menu"
 	"gorm.io/gorm"
-	menuPort "github.com/KhoshMaze/khoshmaze-backend/internal/domain/menu/port"
-	appCtx "github.com/KhoshMaze/khoshmaze-backend/internal/adapters/context"
 )
 
 type app struct {
@@ -67,7 +67,6 @@ func (a *app) setDB() error {
 		&types.Subscription{},
 		&types.Restaurant{},
 		&types.Branch{},
-		&types.Menu{},
 		&types.Food{},
 		&types.FoodImage{},
 		&types.FoodPrice{},
@@ -110,7 +109,7 @@ func (a *app) MenuService(ctx context.Context) menuPort.Service {
 }
 
 func (a *app) menuServiceWithDB(db *gorm.DB) menuPort.Service {
-	return menu.NewService(storage.NewMenuRepo(db), storage.NewFoodRepo(db, a.redisProvider))
+	return menu.NewService(storage.NewFoodRepo(db, a.redisProvider))
 }
 
 func (a *app) AnomalyDetectionService() *middlewares.GeoAnomalyService {

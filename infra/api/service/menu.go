@@ -17,10 +17,10 @@ func NewMenuService(svc port.Service) *MenuService {
 	return &MenuService{svc: svc}
 }
 
-func (s *MenuService) GetFoods(ctx context.Context, menuID uint, page, pageSize int) (*pb.GetAllFoodsResponse, error) {
+func (s *MenuService) GetFoods(ctx context.Context, branchID uint, page, pageSize int) (*pb.GetAllFoodsResponse, error) {
 	pagination := common.NewPagination(page, pageSize)
 
-	result, err := s.svc.GetAllFoods(ctx, pagination, menuID)
+	result, err := s.svc.GetAllFoods(ctx, pagination, branchID)
 	if err != nil {
 		return nil, err
 	}
@@ -39,9 +39,7 @@ func (s *MenuService) GetFoods(ctx context.Context, menuID uint, page, pageSize 
 
 	return &pb.GetAllFoodsResponse{
 		Extra: &pb.GetAllFoodsResponse_Extra{
-			MenuID: int64(menuID),
-			// BranchID:   int64(branchID),
-			// RestaurantID: int64(restaurantID),
+			BranchID: int64(branchID),
 		},
 		Foods: foods,
 		PaginationInfo: &pb.Pagination{
@@ -53,17 +51,13 @@ func (s *MenuService) GetFoods(ctx context.Context, menuID uint, page, pageSize 
 	}, nil
 }
 
-func (s *MenuService) GetMenuByID(ctx context.Context, id uint) (*model.Menu, error) {
-	return s.GetMenuByID(ctx, id)
-}
-
 func (s *MenuService) AddFood(ctx context.Context, req *pb.CreateFoodRequest) (uint, error) {
 	food := model.Food{
 		Name:        req.GetName(),
 		Description: req.GetDescription(),
 		Type:        req.GetType(),
 		Price:       req.GetPrice(),
-		MenuID:      uint(req.GetMenuID()),
+		BranchID:    uint(req.GetBranchID()),
 	}
 
 	if err := food.Validate(); err != nil {

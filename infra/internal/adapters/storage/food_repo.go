@@ -58,12 +58,12 @@ func (r *foodRepo) Delete(ctx context.Context, id uint) error {
 	return r.db.Table("foods").WithContext(ctx).Delete(&types.Food{}, id).Error
 }
 
-func (r *foodRepo) GetAll(ctx context.Context, pagination *common.Pagination, menuID uint) (*common.PaginatedResponse[*model.Food], error) {
+func (r *foodRepo) GetAll(ctx context.Context, pagination *common.Pagination, branchID uint) (*common.PaginatedResponse[*model.Food], error) {
 	var foods []types.Food
 
 	var totalItems int64
 	oc := cache.NewObjectCacher[*common.PaginatedResponse[*model.Food]](r.cache, cache.SerializationTypeGob)
-	if cached, err := oc.Get(ctx, fmt.Sprintf("menu:%d:foods:page:%d:size:%d", menuID, pagination.Page, pagination.PageSize)); cached != nil{
+	if cached, err := oc.Get(ctx, fmt.Sprintf("menu:%d:foods:page:%d:size:%d", branchID, pagination.Page, pagination.PageSize)); cached != nil{
 		if err != nil {
 			return nil, err
 		}
@@ -72,8 +72,8 @@ func (r *foodRepo) GetAll(ctx context.Context, pagination *common.Pagination, me
 
 	q := r.db.Table("foods").WithContext(ctx)
 
-	if menuID != 0 {
-		q = q.Where("menu_id = ?", menuID)
+	if branchID != 0 {
+		q = q.Where("branch_id = ?", branchID)
 	}
 
 	if err := q.Count(&totalItems).Error; err != nil {
@@ -92,7 +92,7 @@ func (r *foodRepo) GetAll(ctx context.Context, pagination *common.Pagination, me
 
 	response := common.NewPaginatedResponse(foodsDomain, totalItems, pagination.Page, pagination.PageSize)
 
-	oc.Set(ctx, fmt.Sprintf("menu:%d:foods:page:%d:size:%d", menuID, pagination.Page, pagination.PageSize), time.Minute*30, response)
+	oc.Set(ctx, fmt.Sprintf("menu:%d:foods:page:%d:size:%d", branchID, pagination.Page, pagination.PageSize), time.Minute*30, response)
 
 	return response, nil
 }

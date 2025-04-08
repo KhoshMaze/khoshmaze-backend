@@ -8,12 +8,10 @@ import (
 )
 
 type Service interface {
-	UpdateMenu(ctx context.Context, menu *model.Menu) error
-	GetMenuByID(ctx context.Context, id uint) (*model.Menu, error)
 	AddFoodToMenu(ctx context.Context, food model.Food) (uint, error)
 	UpdateFoodInMenu(ctx context.Context, food model.Food) error
 	DeleteFoodFromMenu(ctx context.Context, foodID uint) error
-	GetAllFoods(ctx context.Context, pagination *common.Pagination, menuID uint) (*common.PaginatedResponse[*model.Food], error)
+	GetAllFoods(ctx context.Context, pagination *common.Pagination, branchID uint) (*common.PaginatedResponse[*model.Food], error)
 	GetFoodByID(ctx context.Context, id uint) (*model.Food, error)
 	GetImagesByFoodID(ctx context.Context, foodID uint, pagination *common.Pagination) (*common.PaginatedResponse[*model.FoodImage], error)
 	AddFoodImageToFood(ctx context.Context, image *model.FoodImage) error

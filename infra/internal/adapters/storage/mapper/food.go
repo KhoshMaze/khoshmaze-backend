@@ -17,7 +17,7 @@ func FoodStorageToDomain(food types.Food) *model.Food {
 		Images: fp.Map(food.Images, func(image types.FoodImage) model.FoodImage {
 			return *FoodImageStorageToDomain(&image)
 		}),
-		MenuID: food.MenuID,
+		BranchID: food.BranchID,
 	}
 }
 
@@ -32,22 +32,22 @@ func FoodDomainToStorage(food model.Food) *types.Food {
 		Images: fp.Map(food.Images, func(image model.FoodImage) types.FoodImage {
 			return *FoodImageDomainToStorage(&image)
 		}),
-		MenuID: food.MenuID,
+		BranchID: food.BranchID,
 	}
 }
 
 func FoodImageStorageToDomain(image *types.FoodImage) *model.FoodImage {
 	return &model.FoodImage{
-		ID: image.ID,
-		Image: image.Image,
+		ID:     image.ID,
+		Image:  image.Image,
 		FoodID: image.FoodID,
 	}
 }
 
 func FoodImageDomainToStorage(image *model.FoodImage) *types.FoodImage {
 	return &types.FoodImage{
-		ID: image.ID,
-		Image: image.Image,
+		ID:     image.ID,
+		Image:  image.Image,
 		FoodID: image.FoodID,
 	}
 }

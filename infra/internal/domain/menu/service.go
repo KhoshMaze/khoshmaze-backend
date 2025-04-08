@@ -9,22 +9,13 @@ import (
 )
 
 type service struct {
-	menuRepo port.MenuRepository
 	foodRepo port.FoodRepository
 }
 
-func NewService(menuRepo port.MenuRepository, foodRepo port.FoodRepository) port.Service {
+func NewService(foodRepo port.FoodRepository) port.Service {
 	return &service{
-		menuRepo: menuRepo,
-		foodRepo: foodRepo}
-}
-
-func (s *service) GetMenuByID(ctx context.Context, id uint) (*model.Menu, error) {
-	return s.menuRepo.GetByID(ctx, id)
-}
-
-func (s *service) UpdateMenu(ctx context.Context, menu *model.Menu) error {
-	return s.menuRepo.Update(ctx, menu)
+		foodRepo: foodRepo,
+	}
 }
 
 func (s *service) AddFoodToMenu(ctx context.Context, food model.Food) (uint, error) {
@@ -39,8 +30,8 @@ func (s *service) DeleteFoodFromMenu(ctx context.Context, foodID uint) error {
 	return s.foodRepo.Delete(ctx, foodID)
 }
 
-func (s *service) GetAllFoods(ctx context.Context, pagination *common.Pagination, menuID uint) (*common.PaginatedResponse[*model.Food], error) {
-	return s.foodRepo.GetAll(ctx, pagination, menuID)
+func (s *service) GetAllFoods(ctx context.Context, pagination *common.Pagination, branchID uint) (*common.PaginatedResponse[*model.Food], error) {
+	return s.foodRepo.GetAll(ctx, pagination, branchID)
 }
 
 func (s *service) GetFoodByID(ctx context.Context, id uint) (*model.Food, error) {

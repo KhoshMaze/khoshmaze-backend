@@ -1,14 +1,13 @@
 package model
 
-import "github.com/KhoshMaze/khoshmaze-backend/internal/domain/menu/model"
-
 type Branch struct {
-	ID           uint
-	RestaurantID uint
-	Name         string
-	Address      string
-	Phone        string
-	Menu         model.Menu
+	ID             uint
+	RestaurantID   uint
+	Name           string
+	Address        string
+	Phone          string
+	PrimaryColor   string
+	SecondaryColor string
 }
 
 type BranchFilter struct {

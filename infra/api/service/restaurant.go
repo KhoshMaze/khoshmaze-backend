@@ -27,7 +27,7 @@ func (s *RestaurantService) CreateRestaurant(ctx context.Context, ownerID uint, 
 	return s.svc.CreateRestaurant(ctx, restaurant)
 }
 
-func (s *RestaurantService) GetBranch(ctx context.Context, restaurant string, id uint) (*pb.GetBranchResponse, error) {
+func (s *RestaurantService) GetBranch(ctx context.Context, restaurant string, id uint) (*pb.Branch, error) {
 	branch, err := s.svc.GetBranchByFilter(ctx, &model.BranchFilter{
 		ID:             id,
 		RestaurantName: restaurant,
@@ -36,16 +36,13 @@ func (s *RestaurantService) GetBranch(ctx context.Context, restaurant string, id
 	if err != nil || branch == nil {
 		return nil, err
 	}
-	return &pb.GetBranchResponse{
-		Id:         int64(branch.ID),
-		Address:    branch.Address,
-		Phone:      branch.Phone,
-		Restaurant: restaurant,
-		Menu: &pb.Menu{
-			Id:             int64(branch.Menu.ID),
-			PrimaryColor:   branch.Menu.PrimaryColor,
-			SecondaryColor: branch.Menu.SecondaryColor,
-		},
+	return &pb.Branch{
+		Id:             int64(branch.ID),
+		Address:        branch.Address,
+		Phone:          branch.Phone,
+		Restaurant:     restaurant,
+		PrimaryColor:   branch.PrimaryColor,
+		SecondaryColor: branch.SecondaryColor,
 	}, nil
 }
 

@@ -11,11 +11,12 @@ func BranchDomainToStorage(branchDomain *model.Branch) *types.Branch {
 		Model: gorm.Model{
 			ID: branchDomain.ID,
 		},
-		Name:         branchDomain.Name,
-		RestaurantID: uint(branchDomain.RestaurantID),
-		Address:      branchDomain.Address,
-		Phone:        branchDomain.Phone,
-		Menu: *MenuDomainToStorage(branchDomain.Menu),
+		Name:           branchDomain.Name,
+		RestaurantID:   uint(branchDomain.RestaurantID),
+		Address:        branchDomain.Address,
+		Phone:          branchDomain.Phone,
+		PrimaryColor:   branchDomain.PrimaryColor,
+		SecondaryColor: branchDomain.SecondaryColor,
 	}
 }
 
@@ -26,6 +27,7 @@ func BranchStorageToDomain(branchStorage *types.Branch) *model.Branch {
 		RestaurantID: branchStorage.RestaurantID,
 		Address:      branchStorage.Address,
 		Phone:        branchStorage.Phone,
-		Menu: *MenuStorageToDomain(branchStorage.Menu),
+		PrimaryColor: branchStorage.PrimaryColor,
+		SecondaryColor: branchStorage.SecondaryColor,
 	}
 }

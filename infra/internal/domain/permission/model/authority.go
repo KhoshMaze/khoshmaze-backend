@@ -12,7 +12,7 @@ package model
 	This system can be mixed with Roles for more specific and stronger permission system.
 */
 
-type Authority uint64
+type Authority int64
 
 // HasSpecific checks if the user has a specific permission
 func (p Authority) HasSpecific(permission Authority) bool {
