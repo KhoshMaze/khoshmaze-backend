@@ -19,7 +19,7 @@ type Food struct {
 type FoodImage struct {
 	ID     uint   `gorm:"primaryKey"`
 	Image  []byte `gorm:"type:bytea;not null"`
-	FoodID uint   `gorm:"not null"`
+	FoodID uint   `gorm:"not null;index"`
 }
 
 type FoodPrice struct {

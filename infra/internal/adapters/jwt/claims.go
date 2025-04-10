@@ -11,7 +11,6 @@ type UserClaims struct {
 	Permissions uint64
 	Roles       uint64
 	Phone       string
-	IP          string
 }
 
 func (c *UserClaims) ConvertToAuthority() model.Authority {

@@ -138,7 +138,8 @@ func (r *foodRepo) GetImagesByFoodID(ctx context.Context, foodID uint, paginatio
 	return common.NewPaginatedResponse(imagesDomain, totalItems, pagination.Page, pagination.PageSize), nil
 }
 
-func (r *foodRepo) CreateImage(ctx context.Context, image *model.FoodImage) error {
+func (r *foodRepo) CreateImage(ctx context.Context, img *model.FoodImage) error {
+	image := mapper.FoodImageDomainToStorage(img)
 	return r.db.Table("food_images").WithContext(ctx).Create(image).Error
 }
 

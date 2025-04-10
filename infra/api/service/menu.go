@@ -106,3 +106,30 @@ func (s *MenuService) GetFood(ctx context.Context, id uint) (*pb.Food, error) {
 		IsAvailable: food.IsAvailable,
 	}, nil
 }
+
+func (s *MenuService) GetImagesByFoodID(ctx context.Context, foodID uint, page, size int) (*common.PaginatedResponse[*model.FoodImage], error) {
+	pagination := common.NewPagination(page, size)
+
+	result, err := s.svc.GetImagesByFoodID(ctx, foodID, pagination)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (s *MenuService) AddFoodImageToFood(ctx context.Context, img *model.FoodImage) error {
+
+	if err := img.Validate(); err != nil {
+		return err
+	}
+
+	return s.svc.AddFoodImageToFood(ctx, img)
+}
+
+func (s *MenuService) DeleteFoodImageFromFood(ctx context.Context, imageID uint) error {
+
+	return s.svc.DeleteFoodImageFromFood(ctx, imageID)
+
+}

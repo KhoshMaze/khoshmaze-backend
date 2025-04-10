@@ -28,7 +28,7 @@ func SignUp(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 			return fiber.ErrBadRequest
 		}
 
-		resp, err := svc.SignUp(c.UserContext(), &req, c.IP())
+		resp, err := svc.SignUp(c.UserContext(), &req)
 		if err != nil {
 			if errors.Is(err, service.ErrUserAlreadyExists) {
 				return fiber.NewError(fiber.StatusConflict, err.Error())
@@ -133,7 +133,7 @@ func Login(svcGetter ServiceGetter[*service.UserService]) fiber.Handler {
 			return fiber.ErrBadRequest
 		}
 
-		resp, err := svc.Login(ctx.UserContext(), &req, ctx.IP())
+		resp, err := svc.Login(ctx.UserContext(), &req)
 		if err != nil {
 			return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
 		}

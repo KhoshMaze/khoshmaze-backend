@@ -50,7 +50,7 @@ func NewUserService(svc userPort.Service, authSecret, refreshSecret, aesSecret s
 	}
 }
 
-func (s *UserService) SignUp(ctx context.Context, req *pb.UserSignUpRequest, userIP string) (*pb.UserTokenResponse, error) {
+func (s *UserService) SignUp(ctx context.Context, req *pb.UserSignUpRequest) (*pb.UserTokenResponse, error) {
 	ok, err := s.notifSvc.CheckUserNotifValue(ctx, model.Phone(req.GetPhone()), req.GetOtp())
 	if err != nil {
 		return nil, err
@@ -82,14 +82,13 @@ func (s *UserService) SignUp(ctx context.Context, req *pb.UserSignUpRequest, use
 	s.notifSvc.DeleteUserNotifValue(ctx, model.Phone(req.GetPhone()))
 	return s.generateTokenResponse(&jwt.UserClaims{UserID: uint(userId),
 		Phone:       req.GetPhone(),
-		IP:          userIP,
 		Permissions: uint64(user.Permissions),
 		Roles:       uint64(perm.RestaurantOwner)},
 		true)
 
 }
 
-func (s *UserService) Login(ctx context.Context, req *pb.UserLoginRequest, userIP string) (*pb.UserTokenResponse, error) {
+func (s *UserService) Login(ctx context.Context, req *pb.UserLoginRequest) (*pb.UserTokenResponse, error) {
 	ok, err := s.notifSvc.CheckUserNotifValue(ctx, model.Phone(req.GetPhone()), req.GetOtp())
 	if err != nil {
 		return nil, err
@@ -110,7 +109,6 @@ func (s *UserService) Login(ctx context.Context, req *pb.UserLoginRequest, userI
 	s.notifSvc.DeleteUserNotifValue(ctx, model.Phone(req.GetPhone()))
 	return s.generateTokenResponse(&jwt.UserClaims{UserID: uint(user.ID),
 		Phone:       string(user.Phone),
-		IP:          userIP,
 		Permissions: uint64(user.Permissions),
 		Roles:       uint64(user.Roles)}, true)
 
@@ -172,13 +170,6 @@ func (s *UserService) RefreshToken(ctx context.Context, token string) (*pb.UserT
 		return nil, err
 	}
 
-	unhashedIP, err := utils.DecryptString(userClaims.IP, []byte(s.aesSecret))
-	if err != nil {
-		return nil, err
-	}
-
-	userClaims.IP = unhashedIP
-
 	if ok := s.svc.IsBannedToken(ctx, token); ok {
 		return nil, ErrInvalidRefreshToken
 	}
@@ -222,11 +213,7 @@ func (s *UserService) createToken(claims *jwt.UserClaims, isRefresh bool) (strin
 		secret = s.refreshSecret
 		exp = s.refreshExpMin
 	}
-	encryptedIP, err := utils.EncryptString(claims.IP, []byte(s.aesSecret))
-	if err != nil {
-		return "", 0, err
-	}
-	claims.IP = encryptedIP
+
 	claims.ExpiresAt = jwt5.NewNumericDate(timeutils.AddMinutes(exp, true))
 	token, err := jwt.CreateToken([]byte(secret), claims)
 
