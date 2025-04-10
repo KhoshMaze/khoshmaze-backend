@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package pb.common;
+
+message Pagination {
+    int32 page = 1 [json_name = "page"];
+    int32 pageSize = 2 [json_name = "pageSize"];
+    int64 totalItems = 3 [json_name = "totalItems"];
+    int32 totalPages = 4 [json_name = "totalPages"];
+}
